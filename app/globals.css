@@ -1,11 +1,16 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: "DFVN Hogfish";
-  src: url("/font/DFVN Hogfish.otf") format("opentype");
+  font-family: "DFVN_Hogfish";
+  src: url("/font/DFVN_Hogfish.otf?v=2") format("opentype");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
+}
+
+/* Apply font globally */
+body {
+  font-family: "DFVN_Hogfish", sans-serif !important;
 }
 
 /* Custom cursor styles */
