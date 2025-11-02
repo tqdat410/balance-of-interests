@@ -300,8 +300,8 @@ const EVENTS: Record<number, GameEvent> = {
     name: "Startup",
     imageUrl:
       "https://res.cloudinary.com/do6szo7zy/image/upload/f_auto,q_auto,w_300/start_up_xmarxz.png",
-    positiveEffects: { Government: 10, Businesses: 15, Workers: 25 },
-    negativeEffects: { Government: 0, Businesses: 0, Workers: -30 },
+    positiveEffects: { Government: 15, Businesses: 15, Workers: 30 },
+    negativeEffects: { Government: 0, Businesses: 0, Workers: -20 },
     isSpecialEvent: true,
     entity: "Workers",
   },
@@ -315,8 +315,8 @@ const EVENTS: Record<number, GameEvent> = {
     name: "Đầu Tư Sản Phẩm Mới",
     imageUrl:
       "https://res.cloudinary.com/do6szo7zy/image/upload/f_auto,q_auto,w_300/sp_moit_ouqyl5.png",
-    positiveEffects: { Government: 20, Businesses: 35, Workers: 10 },
-    negativeEffects: { Government: -5, Businesses: -30, Workers: -1 },
+    positiveEffects: { Government: 20, Businesses: 40, Workers: 20 },
+    negativeEffects: { Government: 0, Businesses: -20, Workers: 0 },
     isSpecialEvent: true,
     entity: "Businesses",
   },
@@ -380,6 +380,14 @@ export default function BalanceOfInterests() {
   // FAQ popup state
   const [showFAQ, setShowFAQ] = useState(false);
 
+  // Player name and session tracking
+  const [playerName, setPlayerName] = useState<string>("");
+  const [sessionId, setSessionId] = useState<string>("");
+  const [showNameInput, setShowNameInput] = useState(true);
+  const [gameStartTime, setGameStartTime] = useState<number>(0);
+  const [totalActions, setTotalActions] = useState<number>(0);
+  const [inputShaking, setInputShaking] = useState(false);
+
   // Close FAQ popup when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -395,6 +403,43 @@ export default function BalanceOfInterests() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showFAQ]);
+
+  // Generate UUID for session
+  const generateUUID = () => {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+      /[xy]/g,
+      function (c) {
+        const r = (Math.random() * 16) | 0,
+          v = c === "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      }
+    );
+  };
+
+  // Initialize session on mount
+  useEffect(() => {
+    if (!sessionId) {
+      setSessionId(generateUUID());
+    }
+  }, [sessionId]);
+
+  const validateAndStartGame = () => {
+    const trimmedName = playerName.trim();
+    if (!trimmedName || trimmedName.length < 2) {
+      // Trigger shake animation instead of alert
+      setInputShaking(true);
+      setTimeout(() => setInputShaking(false), 500);
+      return;
+    }
+    if (trimmedName.length > 50) {
+      // Trigger shake animation instead of alert
+      setInputShaking(true);
+      setTimeout(() => setInputShaking(false), 500);
+      return;
+    }
+    setShowNameInput(false);
+    startGame();
+  };
 
   const startGame = () => {
     // Prevent multiple clicks during animation
@@ -428,6 +473,10 @@ export default function BalanceOfInterests() {
       setEventMessage(null);
       setCurrentEvent(null);
       setShowEventPopup(false);
+      setGameStartTime(Date.now());
+      setTotalActions(0);
+      // Reset submit flag for new game
+      submitScoreRef.current = false;
       startNewRound(1); // pass initial round
 
       // Reset animation states after game starts
@@ -594,7 +643,74 @@ export default function BalanceOfInterests() {
       setMenuFadingOut(false);
       // Start fade-in for ending screen
       setEndingFadingIn(true);
+      // Submit score when game ends
+      submitScore(targetState);
     }, 1000); // Same duration as menu fade out
+  };
+
+  // Submit score to Supabase - using ref to prevent duplicate calls
+  const submitScoreRef = React.useRef(false);
+
+  const submitScore = async (resultState: "gameOver" | "victory") => {
+    // Prevent duplicate submissions
+    if (submitScoreRef.current) {
+      console.log("Score already submitted, skipping...");
+      return;
+    }
+
+    submitScoreRef.current = true;
+
+    const gameDuration = Math.floor((Date.now() - gameStartTime) / 1000);
+    const ending =
+      resultState === "gameOver"
+        ? "failed"
+        : endingType === "harmony"
+        ? "harmony"
+        : "survival";
+
+    const payload = {
+      session_id: sessionId,
+      name: playerName.trim(),
+      final_round: round,
+      total_action: totalActions,
+      gov_bar: bars.Government,
+      bus_bar: bars.Businesses,
+      wor_bar: bars.Workers,
+      start_time: new Date(gameStartTime).toISOString(),
+      end_time: new Date().toISOString(),
+      duration: gameDuration,
+      ending: ending,
+    };
+
+    console.log("Submitting score:", payload);
+
+    try {
+      const response = await fetch(
+        "https://ctecaqewflybcqyclwom.supabase.co/rest/v1/game_records",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey:
+              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0ZWNhcWV3Zmx5YmNxeWNsd29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwOTI0NjgsImV4cCI6MjA3NzY2ODQ2OH0.mLn1RPvBr1HJNpu6eYDwJHTZkn6z-WTA9ZnghIsPnhg",
+            Authorization:
+              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0ZWNhcWV3Zmx5YmNxeWNsd29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwOTI0NjgsImV4cCI6MjA3NzY2ODQ2OH0.mLn1RPvBr1HJNpu6eYDwJHTZkn6z-WTA9ZnghIsPnhg",
+            Prefer: "return=minimal",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to submit score");
+      }
+
+      console.log("Score submitted successfully");
+    } catch (error) {
+      console.error("Error submitting score:", error);
+      // Reset flag on error to allow retry
+      submitScoreRef.current = false;
+    }
   };
 
   // Check end states each time bars/turn/round updates
@@ -634,6 +750,7 @@ export default function BalanceOfInterests() {
     }
 
     applyEffects(modifiedEffects, action.name, currentEntity || "Event");
+    setTotalActions((prev) => prev + 1);
   };
 
   const handleActionComplete = () => {
@@ -832,6 +949,7 @@ export default function BalanceOfInterests() {
           </button>
           {showFAQ && <FAQPopup onClose={() => setShowFAQ(false)} />}
         </div>
+
         {/* Grid + Glow on All Sides */}
         <div
           className="absolute inset-0 z-0"
@@ -846,23 +964,75 @@ export default function BalanceOfInterests() {
           <h1 className="text-9xl text-amber-500 mb-2 tracking-tight text-nowrap">
             lợi ⚖ ích
           </h1>
-          <p className="text-2xl text-amber-700 mb-8 text-center max-w-9xl">
+          <p className="text-2xl text-amber-700 mb-2 text-center max-w-9xl">
             " Duy trì sự cân bằng về lợi ích giữa Nhà nước, Doanh nghiệp và
-            người lao động. <br /> Đảm bảo không ai bị bỏ lại phía sau! "
+            người lao động. <br /> Đảm bảo không chủ thể nào bị bỏ lại phía sau!
+            "
           </p>
-          <button
-            onClick={startGame}
-            disabled={startButtonAnimating}
-            className={`
+
+          {showNameInput ? (
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative w-full max-w-md">
+                {!playerName && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <span className="text-slate-400 text-xl pt-2">
+                      Nhập tên của bạn...
+                    </span>
+                  </div>
+                )}
+                <input
+                  type="text"
+                  value={playerName}
+                  onChange={(e) => setPlayerName(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      validateAndStartGame();
+                    }
+                  }}
+                  maxLength={24}
+                  className={`w-full px-6 pt-2 text-2xl leading-loose text-center border-2 border-amber-500 rounded-xl focus:outline-none focus:border-amber-600 bg-white text-slate-700 ${
+                    inputShaking ? "animate-inputShake" : ""
+                  }`}
+                  autoFocus
+                />
+              </div>
+              <button onClick={validateAndStartGame} className="game-button">
+                <span className="relative z-10">Bắt đầu trò chơi</span>
+              </button>
+              <a
+                href="/leaderboard"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-2.5 bg-amber-400 text-white rounded-lg hover:bg-amber-500 transition-all duration-200 shadow-md text-2xl"
+              >
+                🏆 Bảng Xếp Hạng
+              </a>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-4">
+              <button
+                onClick={startGame}
+                disabled={startButtonAnimating}
+                className={`
               game-button
               ${startButtonAnimating ? "cursor-not-allowed opacity-80" : ""}
               ${startClickAnimation ? `animate-${startClickAnimation}` : ""}
             `}
-          >
-            <span className="relative z-10">
-              {startButtonAnimating ? "Đang tải..." : "Bắt đầu trò chơi"}
-            </span>
-          </button>
+              >
+                <span className="relative z-10">
+                  {startButtonAnimating ? "Đang tải..." : "Bắt đầu trò chơi"}
+                </span>
+              </button>
+              <a
+                href="/leaderboard"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-200 shadow-md text-lg"
+              >
+                🏆 Bảng Xếp Hạng
+              </a>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -898,7 +1068,7 @@ export default function BalanceOfInterests() {
             onClick={startGame}
             disabled={startButtonAnimating}
             className={`
-              game-button
+              w-[240px] game-button
               ${startButtonAnimating ? "cursor-not-allowed opacity-80" : ""}
               ${startClickAnimation ? `animate-${startClickAnimation}` : ""}
             `}
@@ -907,6 +1077,15 @@ export default function BalanceOfInterests() {
               {startButtonAnimating ? "Đang tải..." : "Chơi lại"}
             </span>
           </button>
+
+          <a
+            href="/leaderboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all duration-200 shadow-lg text-lg"
+          >
+            🏆 Bảng Xếp Hạng
+          </a>
         </div>
       </div>
     );
@@ -980,6 +1159,15 @@ export default function BalanceOfInterests() {
               {startButtonAnimating ? "Đang tải..." : "Chơi lại"}
             </span>
           </button>
+
+          <a
+            href="/leaderboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all duration-200 shadow-lg text-lg"
+          >
+            🏆 Xem Bảng Xếp Hạng
+          </a>
         </div>
       </div>
     );
