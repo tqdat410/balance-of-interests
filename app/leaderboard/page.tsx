@@ -24,14 +24,19 @@ export default function LeaderboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [isReloading, setIsReloading] = useState(false);
   const itemsPerPage = 10;
 
   useEffect(() => {
     fetchLeaderboard();
   }, [currentPage]);
 
-  const fetchLeaderboard = async () => {
-    setLoading(true);
+  const fetchLeaderboard = async (isManualReload = false) => {
+    if (isManualReload) {
+      setIsReloading(true);
+    } else {
+      setLoading(true);
+    }
     setError(null);
 
     try {
@@ -78,7 +83,11 @@ export default function LeaderboardPage() {
       setError("Không thể tải bảng xếp hạng. Vui lòng thử lại sau.");
       console.error("Error fetching leaderboard:", err);
     } finally {
-      setLoading(false);
+      if (isManualReload) {
+        setIsReloading(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
   const formatDuration = (seconds: number) => {
@@ -129,7 +138,7 @@ export default function LeaderboardPage() {
           <div className="text-center py-12">
             <p className="text-xl text-red-500">{error}</p>
             <button
-              onClick={fetchLeaderboard}
+              onClick={() => fetchLeaderboard(false)}
               className="mt-4 px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all"
             >
               Thử lại
@@ -173,13 +182,16 @@ export default function LeaderboardPage() {
             <button
               onClick={() => {
                 setCurrentPage(1);
-                fetchLeaderboard();
+                fetchLeaderboard(true);
               }}
-              className="p-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 group"
+              className={`p-3 bg-amber-500 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 ${
+                isReloading ? "opacity-70 cursor-wait" : "hover:bg-amber-600"
+              }`}
               title="Tải lại"
+              disabled={isReloading}
             >
               <svg
-                className="w-5 h-5 transition-transform group-hover:rotate-180 duration-500"
+                className={`w-5 h-5 ${isReloading ? "animate-spin" : ""}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
