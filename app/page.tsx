@@ -479,6 +479,11 @@ export default function BalanceOfInterests() {
       submitScoreRef.current = false;
       startNewRound(1); // pass initial round
 
+      // Trigger music restart event
+      window.dispatchEvent(
+        new CustomEvent("gameStateChange", { detail: { state: "playing" } })
+      );
+
       // Reset animation states after game starts
       setTimeout(() => {
         setStartButtonAnimating(false);
@@ -645,6 +650,11 @@ export default function BalanceOfInterests() {
       setEndingFadingIn(true);
       // Submit score when game ends
       submitScore(targetState);
+
+      // Trigger music restart event
+      window.dispatchEvent(
+        new CustomEvent("gameStateChange", { detail: { state: targetState } })
+      );
     }, 1000); // Same duration as menu fade out
   };
 
@@ -1068,7 +1078,7 @@ export default function BalanceOfInterests() {
             onClick={startGame}
             disabled={startButtonAnimating}
             className={`
-              w-[240px] game-button
+              w-60 game-button
               ${startButtonAnimating ? "cursor-not-allowed opacity-80" : ""}
               ${startClickAnimation ? `animate-${startClickAnimation}` : ""}
             `}
