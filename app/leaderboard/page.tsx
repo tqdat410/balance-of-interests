@@ -40,30 +40,25 @@ export default function LeaderboardPage() {
     setError(null);
 
     try {
-      // Call RPC function directly (no CORS issues)
-      const response = await fetch(
-        "https://ctecaqewflybcqyclwom.supabase.co/rest/v1/rpc/get_grouped_leaderboard",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey:
-              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0ZWNhcWV3Zmx5YmNxeWNsd29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwOTI0NjgsImV4cCI6MjA3NzY2ODQ2OH0.mLn1RPvBr1HJNpu6eYDwJHTZkn6z-WTA9ZnghIsPnhg",
-            Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0ZWNhcWV3Zmx5YmNxeWNsd29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwOTI0NjgsImV4cCI6MjA3NzY2ODQ2OH0.mLn1RPvBr1HJNpu6eYDwJHTZkn6z-WTA9ZnghIsPnhg",
-          },
-          body: JSON.stringify({
-            page_number: currentPage,
-            page_size: itemsPerPage,
-          }),
-        }
-      );
+      // Call Next.js API route (no credentials exposed to client)
+      const response = await fetch("/api/leaderboard", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          page_number: currentPage,
+          page_size: itemsPerPage,
+        }),
+      });
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch leaderboard");
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Failed to fetch leaderboard");
       }
 
-      const data = await response.json();
+      const data = result.data;
 
       if (!data || data.length === 0) {
         setEntries([]);
@@ -71,16 +66,18 @@ export default function LeaderboardPage() {
         return;
       }
 
-      // Extract total count from first row
-      const totalCount = data[0].total_count || 0;
+      // Extract total count from pagination info
+      const totalCount = result.pagination?.totalCount || 0;
       console.log("Total count:", totalCount, "Items per page:", itemsPerPage);
       setTotalCount(totalCount);
 
       // Remove total_count field from records
       const records = data.map(({ total_count, ...record }: any) => record);
       setEntries(records);
-    } catch (err) {
-      setError("Không thể tải bảng xếp hạng. Vui lòng thử lại sau.");
+    } catch (err: any) {
+      setError(
+        err?.message || "Không thể tải bảng xếp hạng. Vui lòng thử lại sau."
+      );
       console.error("Error fetching leaderboard:", err);
     } finally {
       if (isManualReload) {

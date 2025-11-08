@@ -51,6 +51,13 @@ BEGIN
       ROW_NUMBER() OVER (
         PARTITION BY gr.session_id 
         ORDER BY 
+          -- Best score per session: ending priority first
+          CASE 
+            WHEN gr.ending = 'harmony' THEN 1
+            WHEN gr.ending = 'survival' THEN 2
+            WHEN gr.ending = 'failed' THEN 3
+            ELSE 4
+          END ASC,
           gr.final_round DESC,
           gr.duration ASC,
           gr.total_action DESC,
@@ -76,6 +83,13 @@ BEGIN
   FROM ranked_records rr
   WHERE rr.rn = 1
   ORDER BY 
+    -- Leaderboard ranking: ending priority first
+    CASE 
+      WHEN rr.ending = 'harmony' THEN 1
+      WHEN rr.ending = 'survival' THEN 2
+      WHEN rr.ending = 'failed' THEN 3
+      ELSE 4
+    END ASC,
     rr.final_round DESC,
     rr.duration ASC,
     rr.total_action DESC,

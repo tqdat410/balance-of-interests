@@ -382,7 +382,9 @@ export default function BalanceOfInterests() {
 
   // Player name and session tracking
   const [playerName, setPlayerName] = useState<string>("");
-  const [sessionId, setSessionId] = useState<string>("");
+  const [sessionId, setSessionId] = useState<string>(""); // Database grouping
+  const [gameSessionId, setGameSessionId] = useState<string>(""); // Anti-cheat per game
+  const [gameToken, setGameToken] = useState<string>(""); // Add game token state
   const [showNameInput, setShowNameInput] = useState(true);
   const [gameStartTime, setGameStartTime] = useState<number>(0);
   const [totalActions, setTotalActions] = useState<number>(0);
@@ -416,12 +418,41 @@ export default function BalanceOfInterests() {
     );
   };
 
-  // Initialize session on mount
+  // Initialize user session on mount (for database grouping)
   useEffect(() => {
     if (!sessionId) {
       setSessionId(generateUUID());
     }
   }, [sessionId]);
+
+  // Initialize game session on mount
+  useEffect(() => {
+    if (!gameSessionId) {
+      setGameSessionId(generateUUID());
+    }
+  }, [gameSessionId]);
+
+  // Fetch game token when gameSessionId changes (for anti-cheat)
+  useEffect(() => {
+    const initGameToken = async () => {
+      if (gameSessionId && !gameToken) {
+        try {
+          const response = await fetch("/api/game-token", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ game_session_id: gameSessionId }), // Use gameSessionId
+          });
+          const result = await response.json();
+          if (result.success) {
+            setGameToken(result.token);
+          }
+        } catch (error) {
+          // Silent fail
+        }
+      }
+    };
+    initGameToken();
+  }, [gameSessionId, gameToken]);
 
   const validateAndStartGame = () => {
     const trimmedName = playerName.trim();
@@ -444,6 +475,11 @@ export default function BalanceOfInterests() {
   const startGame = () => {
     // Prevent multiple clicks during animation
     if (startButtonAnimating) return;
+
+    // Generate new game session for anti-cheat
+    const newGameSessionId = generateUUID();
+    setGameSessionId(newGameSessionId);
+    setGameToken(""); // Reset token to fetch new one
 
     // Set start button animation state
     setStartButtonAnimating(true);
@@ -661,10 +697,38 @@ export default function BalanceOfInterests() {
   // Submit score to Supabase - using ref to prevent duplicate calls
   const submitScoreRef = React.useRef(false);
 
+  // Helper function to generate hash client-side (with timestamp)
+  const generateClientHash = async (data: {
+    final_round: number;
+    gov_bar: number;
+    bus_bar: number;
+    wor_bar: number;
+    duration: number;
+    ending: string;
+    timestamp: number;
+  }): Promise<string> => {
+    // Use gameSessionId for anti-cheat, NOT sessionId
+    const dataString = `${gameSessionId}|${data.final_round}|${data.gov_bar}|${data.bus_bar}|${data.wor_bar}|${data.duration}|${data.ending}|${data.timestamp}|${gameToken}`;
+
+    // Use Web Crypto API (available in browsers)
+    const encoder = new TextEncoder();
+    const dataBuffer = encoder.encode(dataString);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", dataBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    return hashHex;
+  };
+
   const submitScore = async (resultState: "gameOver" | "victory") => {
     // Prevent duplicate submissions
     if (submitScoreRef.current) {
-      console.log("Score already submitted, skipping...");
+      return;
+    }
+
+    if (!gameToken) {
       return;
     }
 
@@ -678,8 +742,24 @@ export default function BalanceOfInterests() {
         ? "harmony"
         : "survival";
 
+    const timestamp = Date.now();
+
+    const gameData = {
+      final_round: round,
+      gov_bar: bars.Government,
+      bus_bar: bars.Businesses,
+      wor_bar: bars.Workers,
+      duration: gameDuration,
+      ending: ending,
+      timestamp: timestamp,
+    };
+
+    // Generate verification hash (uses gameSessionId internally)
+    const verificationHash = await generateClientHash(gameData);
+
     const payload = {
       session_id: sessionId,
+      game_session_id: gameSessionId,
       name: playerName.trim(),
       final_round: round,
       total_action: totalActions,
@@ -690,34 +770,27 @@ export default function BalanceOfInterests() {
       end_time: new Date().toISOString(),
       duration: gameDuration,
       ending: ending,
+      timestamp: timestamp,
+      verification_hash: verificationHash,
     };
 
-    console.log("Submitting score:", payload);
-
     try {
-      const response = await fetch(
-        "https://ctecaqewflybcqyclwom.supabase.co/rest/v1/game_records",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey:
-              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0ZWNhcWV3Zmx5YmNxeWNsd29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwOTI0NjgsImV4cCI6MjA3NzY2ODQ2OH0.mLn1RPvBr1HJNpu6eYDwJHTZkn6z-WTA9ZnghIsPnhg",
-            Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0ZWNhcWV3Zmx5YmNxeWNsd29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwOTI0NjgsImV4cCI6MjA3NzY2ODQ2OH0.mLn1RPvBr1HJNpu6eYDwJHTZkn6z-WTA9ZnghIsPnhg",
-            Prefer: "return=minimal",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      // Call Next.js API route (no credentials exposed to client)
+      const response = await fetch("/api/submit-score", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-      if (!response.ok) {
-        throw new Error("Failed to submit score");
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Failed to submit score");
       }
-
-      console.log("Score submitted successfully");
-    } catch (error) {
-      console.error("Error submitting score:", error);
+    } catch (error: any) {
+      // Silent fail - don't alert user about submission errors
       // Reset flag on error to allow retry
       submitScoreRef.current = false;
     }
