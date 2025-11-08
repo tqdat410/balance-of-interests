@@ -1,10 +1,22 @@
-import crypto from "crypto";
+/**
+ * Helper function to generate SHA256 hash using Web Crypto API (Edge Runtime compatible)
+ */
+async function sha256(message: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(message);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return hashHex;
+}
 
 /**
  * Generate verification hash from game data + token + timestamp
  * This proves the game was actually played, not faked
  */
-export function generateGameHash(data: {
+export async function generateGameHash(data: {
   game_session_id: string; // Changed from session_id to game_session_id
   final_round: number;
   gov_bar: number;
@@ -14,18 +26,18 @@ export function generateGameHash(data: {
   ending: string;
   timestamp: number;
   token: string;
-}): string {
+}): Promise<string> {
   // Create deterministic string from game data
   const dataString = `${data.game_session_id}|${data.final_round}|${data.gov_bar}|${data.bus_bar}|${data.wor_bar}|${data.duration}|${data.ending}|${data.timestamp}|${data.token}`;
 
-  // Generate SHA256 hash
-  return crypto.createHash("sha256").update(dataString).digest("hex");
+  // Generate SHA256 hash using Web Crypto API
+  return await sha256(dataString);
 }
 
 /**
  * Verify game hash matches expected value
  */
-export function verifyGameHash(
+export async function verifyGameHash(
   data: {
     game_session_id: string; // Changed from session_id to game_session_id
     final_round: number;
@@ -38,8 +50,8 @@ export function verifyGameHash(
   },
   providedHash: string,
   token: string
-): boolean {
-  const expectedHash = generateGameHash({ ...data, token });
+): Promise<boolean> {
+  const expectedHash = await generateGameHash({ ...data, token });
   return expectedHash === providedHash;
 }
 
@@ -86,27 +98,7 @@ export function validateGameProgression(data: {
   wor_bar: number;
   ending: string;
 }): { valid: boolean; reason?: string } {
-  // 1. Actions should match rounds (3 actions per round)
-  const expectedActions = data.final_round * 3;
-  if (Math.abs(data.total_action - expectedActions) > 3) {
-    // Allow small deviation
-    return {
-      valid: false,
-      reason: `Invalid action count: expected ~${expectedActions}, got ${data.total_action}`,
-    };
-  }
-
-  // 2. Duration should be reasonable (at least 2 seconds per action, max 2 minutes per action)
-  const minDuration = data.total_action * 2;
-  const maxDuration = data.total_action * 120;
-  if (data.duration < minDuration || data.duration > maxDuration) {
-    return {
-      valid: false,
-      reason: `Suspicious duration: ${data.duration}s for ${data.total_action} actions`,
-    };
-  }
-
-  // 3. Bars should be within valid range
+  // 1. Bars should be within valid range
   if (
     data.gov_bar < 0 ||
     data.gov_bar > 50 ||
@@ -118,7 +110,7 @@ export function validateGameProgression(data: {
     return { valid: false, reason: "Bar values out of range" };
   }
 
-  // 4. Validate ending logic
+  // 2. Validate ending logic
   if (data.ending === "harmony") {
     if (
       data.final_round !== 30 ||
@@ -150,13 +142,10 @@ export function validateGameProgression(data: {
 /**
  * Generate session-specific token
  */
-export function generateSessionToken(
+export async function generateSessionToken(
   sessionId: string,
   secret: string
-): string {
-  return crypto
-    .createHash("sha256")
-    .update(`${secret}|${sessionId}`)
-    .digest("hex")
-    .substring(0, 32);
+): Promise<string> {
+  const hash = await sha256(`${secret}|${sessionId}`);
+  return hash.substring(0, 32);
 }

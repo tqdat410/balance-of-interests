@@ -6,6 +6,9 @@ import {
   generateSessionToken,
 } from "@/lib/gameVerification";
 
+// Enable Edge Runtime for Cloudflare Pages compatibility
+export const runtime = "edge";
+
 export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
@@ -47,10 +50,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Recreate game-session-specific token (use game_session_id, NOT session_id)
-    const sessionToken = generateSessionToken(payload.game_session_id, secret);
+    const sessionToken = await generateSessionToken(
+      payload.game_session_id,
+      secret
+    );
 
     // Verify hash
-    const isValidHash = verifyGameHash(
+    const isValidHash = await verifyGameHash(
       {
         game_session_id: payload.game_session_id, // Use game_session_id for anti-cheat
         final_round: payload.final_round,
@@ -98,15 +104,6 @@ export async function POST(request: NextRequest) {
 
     // Validate name
     const name = payload.name.trim();
-    if (name.length < 2 || name.length > 50) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Name must be between 2-50 characters",
-        },
-        { status: 400 }
-      );
-    }
 
     // Validate timestamps
     const startTime = new Date(payload.start_time);

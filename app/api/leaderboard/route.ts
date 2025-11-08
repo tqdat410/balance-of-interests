@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Enable Edge Runtime for Cloudflare Pages compatibility
+export const runtime = "edge";
+
 export async function POST(request: NextRequest) {
   try {
     const { page_number, page_size } = await request.json();

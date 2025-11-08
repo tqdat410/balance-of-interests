@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateSessionToken } from "@/lib/gameVerification";
 
+// Enable Edge Runtime for Cloudflare Pages compatibility
+export const runtime = "edge";
+
 /**
  * Generate a game-specific token for verification
  * This token is unique per game session (anti-cheat)
@@ -26,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate game-session-specific token
-    const token = generateSessionToken(game_session_id, secret);
+    const token = await generateSessionToken(game_session_id, secret);
 
     return NextResponse.json({
       success: true,
