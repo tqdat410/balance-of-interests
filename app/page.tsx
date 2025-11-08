@@ -37,6 +37,9 @@ function FAQPopup({ onClose }: { onClose: () => void }) {
           <li className="text-purple-600">
             Các sự kiện đặc biệt sẽ xuất hiện ở một số vòng.
           </li>
+          <li className="text-slate-400 text-[14px] leading-relaxed list-none text-center mt-2 font-bold">
+            góp ý / báo lỗi : tqdat410@gmail.com
+          </li>
         </ul>
       </div>
     </div>
