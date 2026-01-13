@@ -50,10 +50,9 @@ const INITIAL_BARS: Bars = {
 };
 
 // Total turns in game: 30 rounds × 3 turns = 90 turns
-// Total turns in game: 30 rounds × 3 turns = 90 turns
 const TOTAL_TURNS = 90;
-// Pixels per data point for horizontal spacing
-const PIXELS_PER_POINT = 35;
+// Pixels per data point for horizontal spacing (reduced from 35 to 25 for ~30% less width)
+const PIXELS_PER_POINT = 25;
 // Fixed chart width to show all 90 turns upfront
 const CHART_WIDTH = TOTAL_TURNS * PIXELS_PER_POINT;
 // Y-axis width for sticky positioning

@@ -62,8 +62,10 @@ export default function MainMenu({
           className="text-2xl text-[#FEF3E2] mb-6 text-center max-w-3xl font-bold leading-relaxed tracking-wide"
           style={{ textShadow: "1.5px 1.5px 0 #854d0e, -1px -1px 0 #854d0e, 1px -1px 0 #854d0e, -1px 1px 0 #854d0e, 1px 1px 0 #854d0e, 0 4px 8px rgba(0,0,0,0.4)" }}
         >
-          &quot; Duy trì sự cân bằng về lợi ích giữa<br />Nhà nước, Doanh nghiệp và
-          người lao động. <br /> Đảm bảo không chủ thể nào bị bỏ lại phía sau!
+          &quot; Duy trì sự cân bằng về lợi ích giữa<br />
+          <span className="text-[#feb2b2]">Nhà nước</span>,{" "}
+          <span className="text-[#93c5fd]">Doanh nghiệp</span> và{" "}
+          <span className="text-[#86efac]">người lao động</span>. <br /> Đảm bảo không chủ thể nào bị bỏ lại phía sau!
           &quot;
         </p>
 

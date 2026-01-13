@@ -41,6 +41,8 @@ export default function BalanceOfInterests() {
     availableActions,
   } = useGameState();
 
+
+
   if (gameState === "menu") {
     return (
       <MainMenu
