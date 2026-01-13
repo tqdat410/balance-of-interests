@@ -49,9 +49,9 @@ const EventPopup: React.FC<Props> = ({
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fadeIn" />
 
-      {/* Modal - Horizontal 16:9 layout, large size */}
+      {/* Modal - Horizontal 16:9 layout, reduced size */}
       <div 
-        className="relative z-10 w-full max-w-4xl xl:max-w-5xl animate-popupScaleIn"
+        className="relative z-10 w-full max-w-2xl xl:max-w-3xl animate-popupScaleIn"
       >
         <div
           className="rounded-2xl overflow-hidden"
@@ -109,16 +109,20 @@ const EventPopup: React.FC<Props> = ({
           <div className="flex items-center gap-4 p-4 xl:p-5">
             {/* Left: Effects/Description */}
             <div className="flex-1 flex items-center gap-3 flex-wrap">
-              {/* Description for Special Events */}
+              {/* Description for Special Events - with success/failure text */}
               {isSpecial && (
                 <span className="text-sm text-slate-600">
                   {event.entity === "Government" && "Lựa chọn liên minh quốc tế"}
                   {event.entity === "Businesses" && "Đầu tư sản phẩm mới"}
                   {event.entity === "Workers" && "Cơ hội khởi nghiệp"}
+                  {" • "}
+                  <span className="text-green-600 font-medium">Thành công</span>
+                  {" / "}
+                  <span className="text-red-600 font-medium">Thất bại</span>
                 </span>
               )}
 
-              {/* Effects - Regular Events */}
+              {/* Effects - Regular Events (no +/- signs) */}
               {!isSpecial && event.effects && (
                 <div className="flex items-center gap-2 flex-wrap">
                   {Object.entries(getOriginalEffects(event.effects))
@@ -134,13 +138,13 @@ const EventPopup: React.FC<Props> = ({
                           }
                         `}
                       >
-                        {ENTITY_NAMES[entity]}: {value > 0 ? `+${value}` : value}
+                        {ENTITY_NAMES[entity]}: {Math.abs(value)}
                       </span>
                     ))}
                 </div>
               )}
 
-              {/* Outcomes - Special Events */}
+              {/* Outcomes - Special Events (no +/- signs) */}
               {isSpecial && (
                 <div className="flex items-center gap-3 flex-wrap">
                   <div className="flex items-center gap-1.5">
@@ -153,7 +157,7 @@ const EventPopup: React.FC<Props> = ({
                             key={entity}
                             className="px-2 py-0.5 rounded bg-green-100 text-green-700 text-sm font-medium"
                           >
-                            {ENTITY_LABELS[entity]}: {value > 0 ? `+${value}` : value}
+                            {ENTITY_LABELS[entity]}: {Math.abs(value)}
                           </span>
                         ))}
                   </div>
@@ -167,7 +171,7 @@ const EventPopup: React.FC<Props> = ({
                             key={entity}
                             className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-sm font-medium"
                           >
-                            {ENTITY_LABELS[entity]}: {value > 0 ? `+${value}` : value}
+                            {ENTITY_LABELS[entity]}: {Math.abs(value)}
                           </span>
                         ))}
                   </div>
