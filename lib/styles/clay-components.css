@@ -1,0 +1,218 @@
+/* Clay Container/Card */
+.clay-card {
+  background-color: var(--clay-surface);
+  border-radius: var(--clay-radius-lg);
+  box-shadow: var(--clay-shadow-out);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px); /* Optional subtle glass feel mixed in */
+}
+
+/* Interactive Clay Buttons */
+.game-button, 
+.next-button, 
+.skip-button, 
+.execute-button,
+.faq-button {
+  border-radius: var(--clay-radius-md);
+  box-shadow: var(--clay-shadow-button);
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+}
+
+/* Hover States */
+.game-button:hover, 
+.next-button:hover, 
+.skip-button:hover, 
+.execute-button:hover,
+.faq-button:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--clay-shadow-hover);
+}
+
+/* Active/Pressed States */
+.game-button:active, 
+.next-button:active, 
+.skip-button:active, 
+.execute-button:active,
+.faq-button:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: var(--clay-shadow-active);
+}
+
+/* --- Specific Button Variants --- */
+
+/* Primary Action / Execute - Amber */
+.execute-button {
+  background: var(--clay-primary);
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+
+/* Next Button - often primary or secondary */
+.next-button {
+  background: var(--clay-surface);
+  color: var(--clay-text-dark);
+}
+
+/* Skip Button - Muted */
+.skip-button {
+  background-color: #e5e7eb;
+  color: var(--clay-text);
+}
+
+/* Game Button - General */
+.game-button {
+  background: var(--clay-surface);
+  color: var(--clay-text-dark);
+}
+
+/* FAQ Button */
+.faq-button {
+  background: var(--clay-surface);
+  color: var(--clay-text);
+  border-radius: var(--clay-radius-full);
+  width: 48px;
+  height: 48px;
+  padding: 0;
+}
+
+/* --- Inputs --- */
+.clay-input {
+  background-color: #f3f4f6;
+  border-radius: var(--clay-radius-sm);
+  box-shadow: var(--clay-shadow-in);
+  border: none;
+  padding: 0.75rem 1rem;
+  transition: all 0.2s ease;
+  color: var(--clay-text-dark);
+}
+
+.clay-input:focus {
+  background-color: #fff;
+  outline: 2px solid var(--clay-primary);
+  outline-offset: -2px;
+  box-shadow: var(--clay-shadow-active);
+}
+
+/* --- Status/Progress Bars --- */
+.clay-progress-track {
+  background-color: #e5e7eb;
+  border-radius: var(--clay-radius-full);
+  box-shadow: var(--clay-shadow-in);
+  padding: 4px; /* Padding creates the 'inset' look for the bar inside */
+}
+
+.clay-progress-fill {
+  border-radius: var(--clay-radius-full);
+  box-shadow: 
+    2px 2px 4px rgba(0,0,0,0.1),
+    inset 2px 2px 4px rgba(255,255,255,0.4),
+    inset -1px -1px 2px rgba(0,0,0,0.1);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Variant colors for progress bars if needed */
+.clay-progress-fill-red { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+.clay-progress-fill-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.clay-progress-fill-green { background: linear-gradient(135deg, #10b981, #047857); }
+
+/* --- Role-Specific Clay Components --- */
+
+/* Government (N - Red) */
+.clay-card-gov {
+  background: linear-gradient(145deg, var(--clay-gov), #fecaca);
+  box-shadow: var(--clay-shadow-gov);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+.clay-button-gov {
+  background: linear-gradient(145deg, var(--clay-gov), #fecaca);
+  box-shadow: var(--clay-shadow-gov);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: var(--clay-gov-dark);
+  transition: all 0.2s ease;
+}
+.clay-button-gov:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--clay-shadow-hover);
+}
+.clay-button-gov:active {
+  transform: translateY(0);
+  box-shadow: var(--clay-shadow-active);
+}
+
+/* Businesses (D - Blue) */
+.clay-card-biz {
+  background: linear-gradient(145deg, var(--clay-biz), #dbeafe);
+  box-shadow: var(--clay-shadow-biz);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+.clay-button-biz {
+  background: linear-gradient(145deg, var(--clay-biz), #dbeafe);
+  box-shadow: var(--clay-shadow-biz);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: var(--clay-biz-dark);
+  transition: all 0.2s ease;
+}
+.clay-button-biz:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--clay-shadow-hover);
+}
+.clay-button-biz:active {
+  transform: translateY(0);
+  box-shadow: var(--clay-shadow-active);
+}
+
+/* Workers (L - Green) */
+.clay-card-work {
+  background: linear-gradient(145deg, var(--clay-work), #dcfce7);
+  box-shadow: var(--clay-shadow-work);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+.clay-button-work {
+  background: linear-gradient(145deg, var(--clay-work), #dcfce7);
+  box-shadow: var(--clay-shadow-work);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: var(--clay-work-dark);
+  transition: all 0.2s ease;
+}
+.clay-button-work:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--clay-shadow-hover);
+}
+.clay-button-work:active {
+  transform: translateY(0);
+  box-shadow: var(--clay-shadow-active);
+}
+
+/* Generic Action Button (claymorphism style) */
+.clay-button {
+  background: var(--clay-surface);
+  box-shadow: var(--clay-shadow-button);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--clay-radius-lg);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.clay-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--clay-shadow-hover);
+}
+.clay-button:active {
+  transform: translateY(0);
+  box-shadow: var(--clay-shadow-active);
+}
+
+/* Claymorphism text utilities */
+.clay-text-gov { color: var(--clay-gov-dark); }
+.clay-text-biz { color: var(--clay-biz-dark); }
+.clay-text-work { color: var(--clay-work-dark); }
+.clay-text-purple { color: var(--clay-purple-dark); }

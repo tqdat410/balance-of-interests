@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 
 interface LeaderboardEntry {
   id: number;
@@ -27,11 +28,7 @@ export default function LeaderboardPage() {
   const [isReloading, setIsReloading] = useState(false);
   const itemsPerPage = 10;
 
-  useEffect(() => {
-    fetchLeaderboard();
-  }, [currentPage]);
-
-  const fetchLeaderboard = async (isManualReload = false) => {
+  const fetchLeaderboard = useCallback(async (isManualReload = false) => {
     if (isManualReload) {
       setIsReloading(true);
     } else {
@@ -72,11 +69,15 @@ export default function LeaderboardPage() {
       setTotalCount(totalCount);
 
       // Remove total_count field from records
-      const records = data.map(({ total_count, ...record }: any) => record);
+      const records = data.map(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        ({ total_count, ...record }: LeaderboardEntry & { total_count?: number }) => record
+      );
       setEntries(records);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : null;
       setError(
-        err?.message || "Không thể tải bảng xếp hạng. Vui lòng thử lại sau."
+        message || "Không thể tải bảng xếp hạng. Vui lòng thử lại sau."
       );
       console.error("Error fetching leaderboard:", err);
     } finally {
@@ -86,7 +87,12 @@ export default function LeaderboardPage() {
         setLoading(false);
       }
     }
-  };
+  }, [currentPage]);
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [fetchLeaderboard]);
+
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -108,12 +114,12 @@ export default function LeaderboardPage() {
 
       {/* Back Button - Top Left */}
       <div className="absolute top-5 left-5 z-50">
-        <a
+        <Link
           href="/"
           className="inline-block px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all duration-200 text-lg"
         >
           ← Trang chủ
-        </a>
+        </Link>
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-8">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 
 type Entity = "Government" | "Businesses" | "Workers";
 type Bars = Record<Entity, number>;
@@ -24,9 +24,9 @@ const barLabelColor: Record<Entity, string> = {
 };
 
 const getStatusBarColor = (value: number) => {
-  if (value >= 35) return "bg-green-500";
-  if (value >= 20) return "bg-yellow-400";
-  return "bg-red-500";
+  if (value >= 35) return "clay-progress-fill clay-progress-fill-green";
+  if (value >= 20) return "clay-progress-fill bg-gradient-to-br from-yellow-400 to-yellow-600";
+  return "clay-progress-fill clay-progress-fill-red";
 };
 
 const MAX_BAR = 50;
@@ -36,7 +36,7 @@ const ROLE_LABELS: Record<Entity, string> = {
   Workers: "Người lao động",
 };
 
-const GameStatusBars: React.FC<Props> = ({ bars, entities, getBarColor }) => {
+const GameStatusBars: React.FC<Props> = ({ bars, entities }) => {
   // Track mouse position for tooltip
   const [tooltip, setTooltip] = useState<{
     idx: number;
@@ -69,7 +69,7 @@ const GameStatusBars: React.FC<Props> = ({ bars, entities, getBarColor }) => {
     }
   }, [bars, prevBars, entities]);
   return (
-    <div className="flex flex-col items-center min-w-fit">
+    <div className="flex flex-col items-center min-w-fit clay-card p-6">
       <h2 className="text-3xl text-purple-600 mb-2">Tình trạng xã hội</h2>
       <div className="flex flex-row justify-center items-end gap-6">
         {entities.map((entity, idx) => {
@@ -94,11 +94,11 @@ const GameStatusBars: React.FC<Props> = ({ bars, entities, getBarColor }) => {
               <div
                 className={`relative transition-transform duration-150 group-hover:-translate-y-1 group-hover:scale-101 ${changedBars.has(entity) ? 'animate-actionGlow' : ''}`}
               >
-                <div className="h-100 w-5 bg-slate-400 rounded-full flex items-end overflow-hidden">
+                <div className="h-100 w-8 clay-progress-track flex items-end overflow-hidden">
                   <div
                     className={`${getStatusBarColor(
                       bars[entity]
-                    )} w-5 rounded-b-full transition-all duration-500 ${changedBars.has(entity) ? 'animate-actionPulse' : ''}`}
+                    )} w-full transition-all duration-500 ${changedBars.has(entity) ? 'animate-actionPulse' : ''}`}
                     style={{ height: `${percent}%` }}
                   />
                 </div>

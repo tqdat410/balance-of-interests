@@ -1,93 +1,85 @@
 /**
- * Helper function to generate SHA256 hash using Web Crypto API (Edge Runtime compatible)
+ * Game Verification Module - Simplified HMAC-based Anti-cheat
+ *
+ * Flow: Client generates signature with client secret → Server verifies with same secret
+ * No token API needed - single submit call only
  */
-async function sha256(message: string): Promise<string> {
+
+/**
+ * Generate HMAC-SHA256 using Web Crypto API (Edge Runtime compatible)
+ */
+async function hmacSha256(key: string, message: string): Promise<string> {
   const encoder = new TextEncoder();
-  const data = encoder.encode(message);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray
+  const keyData = encoder.encode(key);
+  const msgData = encoder.encode(message);
+
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    keyData,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  const signature = await crypto.subtle.sign("HMAC", cryptoKey, msgData);
+  return Array.from(new Uint8Array(signature))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
-  return hashHex;
 }
 
 /**
- * Generate verification hash from game data + token + timestamp
- * This proves the game was actually played, not faked
+ * Game data for signature generation
  */
-export async function generateGameHash(data: {
-  game_session_id: string; // Changed from session_id to game_session_id
+export interface GameSignatureData {
+  game_session_id: string;
   final_round: number;
   gov_bar: number;
   bus_bar: number;
   wor_bar: number;
   duration: number;
   ending: string;
-  timestamp: number;
-  token: string;
-}): Promise<string> {
-  // Create deterministic string from game data
-  const dataString = `${data.game_session_id}|${data.final_round}|${data.gov_bar}|${data.bus_bar}|${data.wor_bar}|${data.duration}|${data.ending}|${data.timestamp}|${data.token}`;
-
-  // Generate SHA256 hash using Web Crypto API
-  return await sha256(dataString);
 }
 
 /**
- * Verify game hash matches expected value
+ * Generate game verification signature (used by client and server)
+ * game_session_id acts as nonce - prevents replay across sessions
  */
-export async function verifyGameHash(
-  data: {
-    game_session_id: string; // Changed from session_id to game_session_id
-    final_round: number;
-    gov_bar: number;
-    bus_bar: number;
-    wor_bar: number;
-    duration: number;
-    ending: string;
-    timestamp: number;
-  },
-  providedHash: string,
-  token: string
-): Promise<boolean> {
-  const expectedHash = await generateGameHash({ ...data, token });
-  return expectedHash === providedHash;
+export async function generateGameSignature(
+  data: GameSignatureData,
+  secret: string
+): Promise<string> {
+  const message = [
+    data.game_session_id,
+    data.final_round,
+    data.gov_bar,
+    data.bus_bar,
+    data.wor_bar,
+    data.duration,
+    data.ending,
+  ].join("|");
+
+  return hmacSha256(secret, message);
 }
 
 /**
- * Validate timestamp is recent (within 60 seconds)
- * Prevents replay attacks with old hashes
+ * Server-side signature verification
  */
-export function validateTimestamp(
-  timestamp: number,
-  maxAgeSeconds: number = 60
-): { valid: boolean; reason?: string } {
-  const now = Date.now();
-  const age = Math.abs(now - timestamp);
+export async function verifyGameSignature(
+  data: GameSignatureData,
+  clientSignature: string,
+  secret: string
+): Promise<{ valid: boolean; reason?: string }> {
+  const expectedSig = await generateGameSignature(data, secret);
 
-  if (age > maxAgeSeconds * 1000) {
-    return {
-      valid: false,
-      reason: `Timestamp too old: ${Math.floor(
-        age / 1000
-      )}s ago (max: ${maxAgeSeconds}s)`,
-    };
-  }
-
-  // Also check if timestamp is in the future (clock skew protection)
-  if (timestamp > now + 5000) {
-    return {
-      valid: false,
-      reason: "Timestamp is in the future",
-    };
+  if (expectedSig !== clientSignature) {
+    return { valid: false, reason: "Invalid signature" };
   }
 
   return { valid: true };
 }
 
 /**
- * Additional validation: check if game progression makes sense
+ * Validate game progression logic
  */
 export function validateGameProgression(data: {
   final_round: number;
@@ -140,12 +132,34 @@ export function validateGameProgression(data: {
 }
 
 /**
- * Generate session-specific token
+ * Validate timestamps and duration
+ * Relaxed validation - allow 10% tolerance for network delays
  */
-export async function generateSessionToken(
-  sessionId: string,
-  secret: string
-): Promise<string> {
-  const hash = await sha256(`${secret}|${sessionId}`);
-  return hash.substring(0, 32);
+export function validateTimestamp(
+  startTime: Date,
+  endTime: Date,
+  duration: number
+): { valid: boolean; reason?: string } {
+  const calculatedDuration = Math.floor(
+    (endTime.getTime() - startTime.getTime()) / 1000
+  );
+
+  // Allow 10% tolerance (min 10s) for network/processing delays
+  const tolerance = Math.max(10, duration * 0.1);
+
+  if (Math.abs(calculatedDuration - duration) > tolerance) {
+    return { valid: false, reason: "Duration mismatch" };
+  }
+
+  // Max game duration: 2 hours (sanity check)
+  if (duration > 7200) {
+    return { valid: false, reason: "Game duration too long" };
+  }
+
+  // Min game duration: 10 seconds (prevent instant submissions)
+  if (duration < 10) {
+    return { valid: false, reason: "Game duration too short" };
+  }
+
+  return { valid: true };
 }

@@ -24,25 +24,25 @@ const LABELS: Record<Entity, string> = {
   Workers: "L",
 };
 const roleGlassClass = {
-  Government: "glass3d-n",
-  Businesses: "glass3d-d",
-  Workers: "glass3d-l",
+  Government: "clay-card-gov",
+  Businesses: "clay-card-biz",
+  Workers: "clay-card-work",
 };
 
 const DEFAULT_IMG = "/actions/placeholder.png";
 
 const actionNameColor: Record<Entity, string> = {
-  Government: "text-amber-100",
-  Businesses: "text-purple-100",
-  Workers: "text-blue-500",
+  Government: "text-red-800 font-bold",
+  Businesses: "text-blue-800 font-bold",
+  Workers: "text-green-800 font-bold",
 };
 const effectColor = (role: Entity, value: number) => {
   if (role === "Government") {
-    return value > 0 ? "text-green-300" : value < 0 ? "text-red-600" : "";
+    return value > 0 ? "text-green-600" : value < 0 ? "text-red-600" : "";
   } else if (role === "Businesses") {
-    return value > 0 ? "text-green-300" : value < 0 ? "text-red-500" : "";
+    return value > 0 ? "text-green-600" : value < 0 ? "text-red-600" : "";
   } else {
-    return value > 0 ? "text-green-600" : value < 0 ? "text-red-500" : "";
+    return value > 0 ? "text-green-600" : value < 0 ? "text-red-600" : "";
   }
 };
 
@@ -88,6 +88,7 @@ const GameActionButtons: React.FC<Props> = ({
 
   useEffect(() => {
     // Trigger fade-in animation when actions change
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: animation trigger on prop change
     setIsAnimating(true);
     const timer = setTimeout(() => setIsAnimating(false), 600);
     return () => clearTimeout(timer);
@@ -117,16 +118,16 @@ const GameActionButtons: React.FC<Props> = ({
   );
 
   return (
-    <div className="action-buttons-container mobile-actions w-full flex flex-row flex-nowrap justify-center gap-6 text-purple-100">
+    <div className="action-buttons-container mobile-actions w-full flex flex-row flex-wrap justify-center gap-4">
       {actions.map((action, idx) => (
         <button
           key={`${action.name}-${idx}`}
           onClick={() => memoizedHandleAction(action)}
           disabled={!!eventMessage || clickedAction === action.name}
           className={`
-            action-button mobile-action-button flex flex-col items-center px-4 py-3 rounded-2xl min-w-[130px] max-w-[200px] h-72
-            transition-all duration-300 ease-in-out
-            hover:scale-105 hover:-translate-y-1 hover:shadow-2xl
+            clay-button flex flex-col items-center px-4 py-3 rounded-2xl min-w-[140px] max-w-[180px]
+            transition-all duration-200 ease-out
+            hover:scale-102 hover:-translate-y-1
             ${roleGlassClass[entity]}
             ${isAnimating && !clickedAction ? "animate-fadeIn" : ""}
             ${

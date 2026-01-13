@@ -1,11 +1,19 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import GameStatusBars from "./components/GameStatusBars";
+import dynamic from "next/dynamic";
 import GameActionButtons from "./components/GameActionButtons";
-import GameHistory from "./components/GameHistory";
 import EventPopup from "./components/EventPopup";
-import GameIllustration from "./components/GameIllustration";
+
+// Dynamic import for chart to avoid SSR issues
+const StatusLineChart = dynamic(() => import("./components/StatusLineChart"), {
+  ssr: false,
+  loading: () => (
+    <div className="clay-card p-4 w-full h-64 flex items-center justify-center">
+      <span className="text-slate-400">Đang tải biểu đồ...</span>
+    </div>
+  ),
+});
 
 // FAQ Popup component
 function FAQPopup({ onClose }: { onClose: () => void }) {
@@ -27,7 +35,7 @@ function FAQPopup({ onClose }: { onClose: () => void }) {
       <div className="text-slate-500 text-[16px] leading-relaxed">
         <ul className="list-disc pl-5">
           <li className="text-yellow-500">
-            Lựa chọn các 'hành động' khôn ngoan để duy trì 3 thanh trạng thái
+            Lựa chọn các &apos;hành động&apos; khôn ngoan để duy trì 3 thanh trạng thái
             cân bằng trong 30 vòng để chiến thắng.
           </li>
           <li className="text-red-400">Thất bại : 1 trong 3 chỉ số về 0.</li>
@@ -387,7 +395,6 @@ export default function BalanceOfInterests() {
   const [playerName, setPlayerName] = useState<string>("");
   const [sessionId, setSessionId] = useState<string>(""); // Database grouping
   const [gameSessionId, setGameSessionId] = useState<string>(""); // Anti-cheat per game
-  const [gameToken, setGameToken] = useState<string>(""); // Add game token state
   const [showNameInput, setShowNameInput] = useState(true);
   const [gameStartTime, setGameStartTime] = useState<number>(0);
   const [totalActions, setTotalActions] = useState<number>(0);
@@ -435,27 +442,6 @@ export default function BalanceOfInterests() {
     }
   }, [gameSessionId]);
 
-  // Fetch game token when gameSessionId changes (for anti-cheat)
-  useEffect(() => {
-    const initGameToken = async () => {
-      if (gameSessionId && !gameToken) {
-        try {
-          const response = await fetch("/api/game-token", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ game_session_id: gameSessionId }), // Use gameSessionId
-          });
-          const result = await response.json();
-          if (result.success) {
-            setGameToken(result.token);
-          }
-        } catch (error) {
-          // Silent fail
-        }
-      }
-    };
-    initGameToken();
-  }, [gameSessionId, gameToken]);
 
   const validateAndStartGame = () => {
     const trimmedName = playerName.trim();
@@ -482,7 +468,6 @@ export default function BalanceOfInterests() {
     // Generate new game session for anti-cheat
     const newGameSessionId = generateUUID();
     setGameSessionId(newGameSessionId);
-    setGameToken(""); // Reset token to fetch new one
 
     // Set start button animation state
     setStartButtonAnimating(true);
@@ -700,29 +685,44 @@ export default function BalanceOfInterests() {
   // Submit score to Supabase - using ref to prevent duplicate calls
   const submitScoreRef = React.useRef(false);
 
-  // Helper function to generate hash client-side (with timestamp)
-  const generateClientHash = async (data: {
+  // Helper function to generate HMAC signature client-side
+  const generateClientSignature = async (data: {
+    game_session_id: string;
     final_round: number;
     gov_bar: number;
     bus_bar: number;
     wor_bar: number;
     duration: number;
     ending: string;
-    timestamp: number;
   }): Promise<string> => {
-    // Use gameSessionId for anti-cheat, NOT sessionId
-    const dataString = `${gameSessionId}|${data.final_round}|${data.gov_bar}|${data.bus_bar}|${data.wor_bar}|${data.duration}|${data.ending}|${data.timestamp}|${gameToken}`;
+    const secret = process.env.NEXT_PUBLIC_GAME_SECRET || "default_secret";
+    const message = [
+      data.game_session_id,
+      data.final_round,
+      data.gov_bar,
+      data.bus_bar,
+      data.wor_bar,
+      data.duration,
+      data.ending,
+    ].join("|");
 
-    // Use Web Crypto API (available in browsers)
+    // Use Web Crypto API for HMAC-SHA256
     const encoder = new TextEncoder();
-    const dataBuffer = encoder.encode(dataString);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", dataBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray
+    const keyData = encoder.encode(secret);
+    const msgData = encoder.encode(message);
+
+    const cryptoKey = await crypto.subtle.importKey(
+      "raw",
+      keyData,
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+
+    const signature = await crypto.subtle.sign("HMAC", cryptoKey, msgData);
+    return Array.from(new Uint8Array(signature))
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
-
-    return hashHex;
   };
 
   const submitScore = async (resultState: "gameOver" | "victory") => {
@@ -731,34 +731,28 @@ export default function BalanceOfInterests() {
       return;
     }
 
-    if (!gameToken) {
-      return;
-    }
-
     submitScoreRef.current = true;
 
     const gameDuration = Math.floor((Date.now() - gameStartTime) / 1000);
     const ending =
       resultState === "gameOver"
-        ? "failed"
+        ? "FAILED"
         : endingType === "harmony"
-        ? "harmony"
-        : "survival";
-
-    const timestamp = Date.now();
+        ? "HARMONY"
+        : "SURVIVAL";
 
     const gameData = {
+      game_session_id: gameSessionId,
       final_round: round,
       gov_bar: bars.Government,
       bus_bar: bars.Businesses,
       wor_bar: bars.Workers,
       duration: gameDuration,
       ending: ending,
-      timestamp: timestamp,
     };
 
-    // Generate verification hash (uses gameSessionId internally)
-    const verificationHash = await generateClientHash(gameData);
+    // Generate HMAC signature
+    const signature = await generateClientSignature(gameData);
 
     const payload = {
       session_id: sessionId,
@@ -773,12 +767,10 @@ export default function BalanceOfInterests() {
       end_time: new Date().toISOString(),
       duration: gameDuration,
       ending: ending,
-      timestamp: timestamp,
-      verification_hash: verificationHash,
+      signature: signature,
     };
 
     try {
-      // Call Next.js API route (no credentials exposed to client)
       const response = await fetch("/api/submit-score", {
         method: "POST",
         headers: {
@@ -792,9 +784,8 @@ export default function BalanceOfInterests() {
       if (!response.ok || !result.success) {
         throw new Error(result.error || "Failed to submit score");
       }
-    } catch (error: any) {
-      // Silent fail - don't alert user about submission errors
-      // Reset flag on error to allow retry
+    } catch {
+      // Silent fail - reset flag to allow retry
       submitScoreRef.current = false;
     }
   };
@@ -810,7 +801,7 @@ export default function BalanceOfInterests() {
 
   // Action handling
   const handleAction = (action: GameAction) => {
-    let modifiedEffects = { ...action.effects };
+    const modifiedEffects = { ...action.effects };
 
     // Apply round-based difficulty modifiers
     if (round >= 11 && round <= 20) {
@@ -879,16 +870,9 @@ export default function BalanceOfInterests() {
     return shuffled.slice(0, Math.min(3, shuffled.length));
   }, [currentEntity, round]);
 
-  // Bar color util
-  const getBarColor = (value: number) => {
-    if (value > 60) return "bg-green-500";
-    if (value > 30) return "bg-yellow-500";
-    return "bg-red-500";
-  };
-
   // UI Sections:
   const mainGameUI = (
-    <div className="w-full h-screen relative bg-transparent">
+    <div className="w-full h-screen relative bg-[var(--clay-bg)]">
       {/* FAQ Button - top left */}
       <div className="absolute top-5 left-10 z-50 mobile-faq-container">
         <button
@@ -901,98 +885,80 @@ export default function BalanceOfInterests() {
         {showFAQ && <FAQPopup onClose={() => setShowFAQ(false)} />}
       </div>
 
-      {/* Desktop Layout */}
-      <div className="hidden md:block w-full h-full">
-        {/* Header absolute top */}
-        <div className="game-header absolute top-0 left-0 w-full flex flex-col items-center justify-center pt-2 z-10">
-          <h1 className="text-7xl text-amber-100 mt-6">lợi ⚖ ích</h1>
-          <div className="round-display">
-            <p className="text-2xl text-slate-400 mb-0">Vòng</p>
-            <p className="text-3xl text-purple-600">{round}/30</p>
-          </div>
-        </div>
-        {/* Status Bars absolute left */}
-        <div className="status-bars-container absolute top-1/2 left-35 -translate-y-1/2 z-10">
-          <GameStatusBars
-            bars={bars}
-            entities={ENTITIES}
-            getBarColor={getBarColor}
+      {/* Desktop Layout - New Claymorphism Design */}
+      <div className="hidden md:flex w-full h-full flex-col p-2 pt-1 gap-2">
+        {/* Chart Row - Full Width, Closer to Top */}
+        <div className="w-full max-w-6xl mx-auto">
+          <StatusLineChart
+            history={history}
+            currentBars={bars}
+            currentRound={round}
+            currentTurnIndex={turnIndex}
           />
         </div>
-        {/* RIGHT: GameHistory absolute fixed */}
-        <div className="history-container absolute top-1/2 right-15 -translate-y-1/2 z-10">
-          <GameHistory history={history} />
-        </div>
-        {/* Action Choices absolute center dưới header */}
-        <div className="absolute left-1/2 bottom-1/30 -translate-x-1/2 -translate-y-1/30 flex flex-col items-center justify-center z-0">
-          <div className="game-illustration">
-            <GameIllustration round={round} />
-          </div>
-          {currentEntity && (
-            <>
-              {/* Role Name and Turn Order Display */}
-              <div className="mb-1 text-center">
-                <h2 className="text-sm text-slate-700">
-                  ( Lượt {turnIndex + 1}/{turnOrder.length} ){" "}
-                  <span className="text-lg">
+
+          {/* Main Content Row: Actions only */}
+        <div className="flex-1 flex gap-4 max-w-6xl mx-auto w-full">
+          {/* Action Buttons - Centered */}
+          <div className="flex-1 flex flex-col">
+            {currentEntity && (
+              <>
+                <div className="text-center mb-2">
+                  <span className="text-slate-500">Lượt {turnIndex + 1}/{turnOrder.length} - </span>
+                  <span className="text-lg font-semibold text-purple-600">
                     {currentEntity === "Government" && "Nhà Nước"}
                     {currentEntity === "Businesses" && "Doanh Nghiệp"}
                     {currentEntity === "Workers" && "Người Lao Động"}
                   </span>
-                </h2>
-              </div>
-              <div className="action-buttons-container">
-                <GameActionButtons
-                  actions={availableActions}
-                  handleAction={handleAction}
-                  eventMessage={eventMessage}
-                  entity={currentEntity}
-                  onActionComplete={handleActionComplete}
-                  round={round}
-                />
-              </div>
-            </>
-          )}
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                  <GameActionButtons
+                    actions={availableActions}
+                    handleAction={handleAction}
+                    eventMessage={eventMessage}
+                    entity={currentEntity}
+                    onActionComplete={handleActionComplete}
+                    round={round}
+                  />
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Mobile Layout */}
-      <div className="mobile-game-container md:hidden">
+      <div className="mobile-game-container md:hidden flex flex-col p-3 gap-3">
         {/* Mobile Header */}
-        <div className="mobile-header">
-          <h1 className="text-7xl text-amber-100 mt-6">lợi ⚖ ích</h1>
-          <div className="mobile-round">
-            <p className="text-lg text-slate-400 mb-0">Vòng</p>
-            <p className="text-xl text-purple-600">{round}/30</p>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl text-amber-500 font-bold">lợi ⚖ ích</h1>
+          <div className="clay-card px-3 py-1 flex items-center gap-1">
+            <span className="text-sm text-slate-500">Vòng</span>
+            <span className="text-lg text-purple-600 font-bold">{round}/30</span>
           </div>
         </div>
 
-        {/* Mobile Status Display */}
-        <div className="mobile-status">
-          <div className="mobile-status-item">
-            <div className="mobile-status-label gov">N</div>
-            <div className="mobile-status-value gov">{bars.Government}/50</div>
+        {/* Mobile Status Display - Compact */}
+        <div className="flex justify-center gap-4">
+          <div className="text-center">
+            <span className="text-red-500 font-bold">N</span>
+            <span className="text-slate-600 ml-1">{bars.Government}</span>
           </div>
-          <div className="mobile-status-item">
-            <div className="mobile-status-label biz">D</div>
-            <div className="mobile-status-value biz">{bars.Businesses}/50</div>
+          <div className="text-center">
+            <span className="text-blue-500 font-bold">D</span>
+            <span className="text-slate-600 ml-1">{bars.Businesses}</span>
           </div>
-          <div className="mobile-status-item">
-            <div className="mobile-status-label worker">L</div>
-            <div className="mobile-status-value worker">{bars.Workers}/50</div>
+          <div className="text-center">
+            <span className="text-green-500 font-bold">L</span>
+            <span className="text-slate-600 ml-1">{bars.Workers}</span>
           </div>
-        </div>
-
-        {/* Mobile Game Illustration */}
-        <div className="mobile-illustration">
-          <GameIllustration round={round} />
         </div>
 
         {/* Mobile Role Display */}
         {currentEntity && (
-          <div className="mobile-role">
-            ( Lượt {turnIndex + 1}/{turnOrder.length} ){" "}
-            <span>
+          <div className="text-center text-sm text-slate-600">
+            Lượt {turnIndex + 1}/{turnOrder.length} -{" "}
+            <span className="font-semibold text-purple-600">
               {currentEntity === "Government" && "Nhà Nước"}
               {currentEntity === "Businesses" && "Doanh Nghiệp"}
               {currentEntity === "Workers" && "Người Lao Động"}
@@ -1002,7 +968,7 @@ export default function BalanceOfInterests() {
 
         {/* Mobile Action Buttons */}
         {currentEntity && (
-          <div className="mobile-actions">
+          <div className="flex-1">
             <GameActionButtons
               actions={availableActions}
               handleAction={handleAction}
@@ -1020,7 +986,7 @@ export default function BalanceOfInterests() {
   if (gameState === "menu") {
     return (
       <div
-        className={`min-h-screen w-full bg-white relative overflow-hidden flex items-center justify-center menu-container ${
+        className={`min-h-screen w-full bg-[var(--clay-bg)] relative overflow-hidden flex items-center justify-center menu-container ${
           menuFadingOut ? "fade-out" : ""
         }`}
       >
@@ -1036,24 +1002,20 @@ export default function BalanceOfInterests() {
           {showFAQ && <FAQPopup onClose={() => setShowFAQ(false)} />}
         </div>
 
-        {/* Grid + Glow on All Sides */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            background: "#ffffff",
-            backgroundImage: `
-       radial-gradient(circle at top center, rgba(59, 130, 246, 0.5),transparent 70%)
-     `,
-          }}
-        />
+        {/* Decorative Circles instead of Grid */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-200/30 blur-3xl" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-amber-200/30 blur-3xl" />
+        </div>
+
         <div className="relative z-10 flex flex-col items-center justify-center w-full">
-          <h1 className="text-9xl text-amber-500 mb-2 tracking-tight text-nowrap">
+          <h1 className="text-9xl text-amber-500 mb-2 tracking-tight text-nowrap font-black drop-shadow-sm">
             lợi ⚖ ích
           </h1>
-          <p className="text-2xl text-amber-700 mb-2 text-center max-w-9xl">
-            " Duy trì sự cân bằng về lợi ích giữa Nhà nước, Doanh nghiệp và
+          <p className="text-2xl text-slate-600 mb-8 text-center max-w-2xl font-medium">
+            &quot; Duy trì sự cân bằng về lợi ích giữa Nhà nước, Doanh nghiệp và
             người lao động. <br /> Đảm bảo không chủ thể nào bị bỏ lại phía sau!
-            "
+            &quot;
           </p>
 
           {showNameInput ? (
@@ -1126,29 +1088,24 @@ export default function BalanceOfInterests() {
   if (gameState === "gameOver") {
     return (
       <div
-        className={`min-h-screen w-full bg-white relative overflow-hidden flex items-center justify-center menu-container fade-in ${
+        className={`min-h-screen w-full bg-[var(--clay-bg)] relative overflow-hidden flex items-center justify-center menu-container fade-in ${
           menuFadingOut ? "fade-out" : ""
         } ${endingFadingIn ? "animate-fadeIn" : ""}`}
       >
-        {/* Grid + Glow on All Sides */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            background: "#ffffff",
-            backgroundImage: `
-       radial-gradient(circle at top center, rgba(59, 130, 246, 0.5),transparent 70%)
-     `,
-          }}
-        />
+        {/* Decorative Circles */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] rounded-full bg-red-200/20 blur-3xl" />
+        </div>
+
         <div className="relative z-10 flex flex-col items-center justify-center w-full">
-          <h1 className="text-9xl text-pink-700 mb-2 tracking-tight text-nowrap">
+          <h1 className="text-9xl text-pink-600 mb-2 tracking-tight text-nowrap font-black drop-shadow-sm">
             lợi💥ích
           </h1>
-          <h1 className="text-6xl text-pink-700 mb-5 mt-5 tracking-tight">
+          <h1 className="text-6xl text-pink-600 mb-5 mt-5 tracking-tight font-bold">
             Thất bại
           </h1>
-          <p className="text-4xl text-amber-600 mb-8 text-center max-w-9xl">
-            " Mất cân bằng về lợi ích. Mâu thuẫn xuất hiện! "
+          <p className="text-4xl text-slate-600 mb-8 text-center max-w-4xl font-medium">
+            &quot; Mất cân bằng về lợi ích. Mâu thuẫn xuất hiện! &quot;
           </p>
           <button
             onClick={startGame}
@@ -1197,26 +1154,22 @@ export default function BalanceOfInterests() {
 
     return (
       <div
-        className={`min-h-screen w-full bg-white relative overflow-hidden flex items-center justify-center menu-container fade-in ${
+        className={`min-h-screen w-full bg-[var(--clay-bg)] relative overflow-hidden flex items-center justify-center menu-container fade-in ${
           menuFadingOut ? "fade-out" : ""
         } ${endingFadingIn ? "animate-fadeIn" : ""}`}
       >
-        {/* Grid + Glow on All Sides */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            background: "#ffffff",
-            backgroundImage: `
-       radial-gradient(circle at top center, rgba(59, 130, 246, 0.5),transparent 70%)
-     `,
-          }}
-        />
+        {/* Decorative Circles */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-[-20%] right-[-20%] w-[50%] h-[50%] rounded-full bg-yellow-200/30 blur-3xl" />
+          <div className="absolute bottom-[-20%] left-[-20%] w-[50%] h-[50%] rounded-full bg-green-200/30 blur-3xl" />
+        </div>
+
         <div className="relative z-10 flex flex-col items-center justify-center w-full">
-          <h1 className="text-9xl text-amber-500 mb-2 tracking-tight text-nowrap">
+          <h1 className="text-9xl text-amber-500 mb-2 tracking-tight text-nowrap font-black drop-shadow-sm">
             {ending.title}
           </h1>
 
-          <p className="text-2xl text-slate-600 mb-8 text-center max-w-6xl">
+          <p className="text-2xl text-slate-600 mb-8 text-center max-w-4xl font-medium">
             {ending.desc}
           </p>
 
@@ -1261,16 +1214,12 @@ export default function BalanceOfInterests() {
 
   // Game playing
   return (
-    <div className="min-h-screen w-full bg-white relative overflow-hidden">
-      {/* Purple Corner Grid Background */}
-      <div
-        className="absolute inset-0 z-0 pointer-events-none"
-        style={{
-          backgroundImage: `
-       radial-gradient(circle at center, #93c5fd, transparent)
-     `,
-        }}
-      />
+    <div className="min-h-screen w-full bg-[var(--clay-bg)] relative overflow-hidden">
+      {/* Decorative Circles for Game Screen */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute -top-20 -left-20 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl" />
+      </div>
       <div className="relative z-10">{mainGameUI}</div>
 
       {/* Event Popup */}

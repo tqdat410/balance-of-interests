@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "../lib/styles/clay-tokens.css";
+@import "../lib/styles/clay-components.css";
 
 @font-face {
   font-family: "DFVN_Hogfish";

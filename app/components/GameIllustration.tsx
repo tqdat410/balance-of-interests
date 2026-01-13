@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 
 interface Role {
   name: string;
@@ -18,10 +19,37 @@ interface PopupEffect {
 }
 
 interface Props {
-  round?: number; // Add round prop to display modified effects
+  round?: number;
 }
 
-const GameIllustration: React.FC<Props> = ({ round = 1 } = {}) => {
+// Helper functions defined outside component
+const getEntityKey = (displayName: string): string => {
+  switch (displayName) {
+    case "Nhà Nước":
+      return "Government";
+    case "Doanh Nghiệp":
+      return "Businesses";
+    case "Người Lao Động":
+      return "Workers";
+    default:
+      return "";
+  }
+};
+
+const getEntityDisplayName = (entityKey: string): string => {
+  switch (entityKey) {
+    case "Government":
+      return "Nhà Nước";
+    case "Businesses":
+      return "Doanh Nghiệp";
+    case "Workers":
+      return "Người Lao Động";
+    default:
+      return "";
+  }
+};
+
+const GameIllustration: React.FC<Props> = ({ round = 1 }) => {
   const [roles, setRoles] = useState<Role[]>([
     {
       name: "Nhà Nước",
@@ -48,43 +76,38 @@ const GameIllustration: React.FC<Props> = ({ round = 1 } = {}) => {
 
   const [popups, setPopups] = useState<PopupEffect[]>([]);
   const [currentTurn, setCurrentTurn] = useState<string>("Nhà Nước");
-  const [currentEvent, setCurrentEvent] = useState<{
-    name: string;
-    round: number;
-  } | null>(null);
 
-  // Function to get modified effects based on round, only for normal actions (not special events)
-  const getModifiedEffects = (
-    originalEffects: Record<string, number>,
-    isSpecialEvent = false
-  ) => {
-    if (isSpecialEvent) return { ...originalEffects };
-    const modifiedEffects = { ...originalEffects };
-    if (round >= 11 && round <= 20) {
-      Object.keys(modifiedEffects).forEach((key) => {
-        if (modifiedEffects[key] > 0) {
-          modifiedEffects[key] -= 1;
-        } else if (modifiedEffects[key] < 0) {
-          modifiedEffects[key] -= 1;
-        }
-      });
-    } else if (round >= 21 && round <= 30) {
-      Object.keys(modifiedEffects).forEach((key) => {
-        if (modifiedEffects[key] > 0) {
-          modifiedEffects[key] -= 2;
-        } else if (modifiedEffects[key] < 0) {
-          modifiedEffects[key] -= 2;
-        }
-      });
-    }
-    return modifiedEffects;
-  };
+  // Function to get modified effects based on round
+  const getModifiedEffects = useCallback(
+    (originalEffects: Record<string, number>, isSpecialEvent = false) => {
+      if (isSpecialEvent) return { ...originalEffects };
+      const modifiedEffects = { ...originalEffects };
+      if (round >= 11 && round <= 20) {
+        Object.keys(modifiedEffects).forEach((key) => {
+          if (modifiedEffects[key] > 0) {
+            modifiedEffects[key] -= 1;
+          } else if (modifiedEffects[key] < 0) {
+            modifiedEffects[key] -= 1;
+          }
+        });
+      } else if (round >= 21 && round <= 30) {
+        Object.keys(modifiedEffects).forEach((key) => {
+          if (modifiedEffects[key] > 0) {
+            modifiedEffects[key] -= 2;
+          } else if (modifiedEffects[key] < 0) {
+            modifiedEffects[key] -= 2;
+          }
+        });
+      }
+      return modifiedEffects;
+    },
+    [round]
+  );
 
-  // Lắng nghe sự kiện từ game để cập nhật trạng thái
+  // Listen to game events
   useEffect(() => {
     const handleActionEffect = (event: CustomEvent) => {
-      const { effects, currentEntity, isSpecialEvent } = event.detail;
-      // isSpecialEvent: truyền từ page.tsx khi dispatch event, true nếu là event đặc biệt
+      const { effects, isSpecialEvent } = event.detail;
       const modifiedEffects = getModifiedEffects(effects, isSpecialEvent);
 
       setRoles((prevRoles) => {
@@ -130,11 +153,6 @@ const GameIllustration: React.FC<Props> = ({ round = 1 } = {}) => {
       }
     };
 
-    const handleSpecialEvent = (event: CustomEvent) => {
-      const { eventName, round } = event.detail;
-      setCurrentEvent({ name: eventName, round });
-    };
-
     window.addEventListener(
       "gameActionEffect",
       handleActionEffect as EventListener
@@ -142,10 +160,6 @@ const GameIllustration: React.FC<Props> = ({ round = 1 } = {}) => {
     window.addEventListener(
       "gameTurnChange",
       handleTurnChange as EventListener
-    );
-    window.addEventListener(
-      "specialEvent",
-      handleSpecialEvent as EventListener
     );
 
     return () => {
@@ -157,14 +171,10 @@ const GameIllustration: React.FC<Props> = ({ round = 1 } = {}) => {
         "gameTurnChange",
         handleTurnChange as EventListener
       );
-      window.removeEventListener(
-        "specialEvent",
-        handleSpecialEvent as EventListener
-      );
     };
-  }, []);
+  }, [getModifiedEffects]);
 
-  // Reset về trạng thái idle sau 3 giây
+  // Reset to idle state after 1.3 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
       setRoles((prevRoles) =>
@@ -174,32 +184,6 @@ const GameIllustration: React.FC<Props> = ({ round = 1 } = {}) => {
 
     return () => clearTimeout(timer);
   }, [roles]);
-
-  const getEntityKey = (displayName: string): string => {
-    switch (displayName) {
-      case "Nhà Nước":
-        return "Government";
-      case "Doanh Nghiệp":
-        return "Businesses";
-      case "Người Lao Động":
-        return "Workers";
-      default:
-        return "";
-    }
-  };
-
-  const getEntityDisplayName = (entityKey: string): string => {
-    switch (entityKey) {
-      case "Government":
-        return "Nhà Nước";
-      case "Businesses":
-        return "Doanh Nghiệp";
-      case "Workers":
-        return "Người Lao Động";
-      default:
-        return "";
-    }
-  };
 
   const getCurrentImage = (role: Role): string => {
     switch (role.state) {
@@ -219,7 +203,7 @@ const GameIllustration: React.FC<Props> = ({ round = 1 } = {}) => {
       <div className="flex items-center justify-center gap-12 relative">
         {roles.map((role) => (
           <div key={role.name} className="relative flex flex-col items-center">
-            {/* Popup hiệu ứng */}
+            {/* Popup effects */}
             <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 z-10">
               {popups
                 .filter((popup) => popup.entity === role.name)
@@ -239,17 +223,19 @@ const GameIllustration: React.FC<Props> = ({ round = 1 } = {}) => {
                 ))}
             </div>
 
-            {/* Hình ảnh role */}
-            <img
+            {/* Role image */}
+            <Image
               src={getCurrentImage(role)}
               alt={role.name}
+              width={144}
+              height={144}
               className="w-36 h-36 object-contain"
             />
 
-            {/* Tên role */}
+            {/* Role name */}
             <div className="text-sm text-gray-600">{role.name}</div>
 
-            {/* Mũi tên chỉ vào role đang đến lượt */}
+            {/* Arrow pointing to current turn */}
             {currentTurn === role.name && (
               <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2">
                 <div className="w-0 h-0 border-l-8 border-r-8 border-b-8 border-l-transparent border-r-transparent border-b-red-500 animate-bounce"></div>

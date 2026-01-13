@@ -25,8 +25,10 @@ const EventPopup: React.FC<Props> = ({
   onContinue,
   onExecute,
   onSkip,
-  round = 1, // Default to round 1 if not provided
+  // round prop kept for future use
 }) => {
+  // Suppress unused variable warning
+  void 0;
   const isSpecial = event.isSpecialEvent;
 
   // Luôn trả về chỉ số gốc, không áp dụng -1/-2 cho event popup
@@ -41,7 +43,7 @@ const EventPopup: React.FC<Props> = ({
 
       {/* Modal Container */}
       <div className=" relative z-10 animate-popupScaleIn">
-        <div className="mobile-event-popup glass3d-box max-w-lg w-full mx-4 p-5 rounded-2xl justify-center items-center flex flex-col">
+        <div className="mobile-event-popup clay-card max-w-lg w-full mx-4 p-8 justify-center items-center flex flex-col">
           {/* Warning Icon */}
           <h2 className="text-3xl text-yellow-500">
             {isSpecial ? "Cơ Hội Đặc Biệt" : "Sự Kiện Đặc Biệt"}
@@ -80,10 +82,10 @@ const EventPopup: React.FC<Props> = ({
 
           {/* Effects Preview */}
           {!isSpecial && event.effects && (
-            <div className="mb-6 p-4 bg-yellow-50 rounded-lg border-3 border-red-600">
+            <div className="mb-6 p-6 bg-yellow-50 rounded-xl shadow-[var(--clay-shadow-in)] w-full">
               <div className="flex justify-center gap-4 text-sm">
                 {Object.entries(getOriginalEffects(event.effects))
-                  .filter(([_, value]) => value !== 0)
+                  .filter(([, value]) => value !== 0)
                   .map(([entity, value]) => (
                     <span key={entity} className={`text-red-600 text-[18px]`}>
                       {entity === "Government" && "Nhà nước"}
@@ -98,15 +100,15 @@ const EventPopup: React.FC<Props> = ({
 
           {/* Possible Outcomes for Special Events */}
           {isSpecial && (
-            <div className="mb-6 p-4 bg-blue-50 rounded-lg border-3 border-blue-600">
-              <div className="space-y-2">
+            <div className="mb-6 p-6 bg-blue-50 rounded-xl shadow-[var(--clay-shadow-in)] w-full">
+              <div className="space-y-4">
                 <div className="flex justify-center gap-2 text-xl">
                   <span className="text-green-600 font-semibold">
                     Thành công :
                   </span>
                   {event.positiveEffects &&
                     Object.entries(getOriginalEffects(event.positiveEffects))
-                      .filter(([_, value]) => value !== 0)
+                      .filter(([, value]) => value !== 0)
                       .map(([entity, value]) => (
                         <span key={entity} className={`text-green-600`}>
                           {entity === "Government" && "N"}
@@ -120,7 +122,7 @@ const EventPopup: React.FC<Props> = ({
                   <span className="text-red-600 font-semibold">Thất bại :</span>
                   {event.negativeEffects &&
                     Object.entries(getOriginalEffects(event.negativeEffects))
-                      .filter(([_, value]) => value !== 0)
+                      .filter(([, value]) => value !== 0)
                       .map(([entity, value]) => (
                         <span key={entity} className={`text-red-600`}>
                           {entity === "Government" && "N"}

@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  verifyGameHash,
+  verifyGameSignature,
   validateGameProgression,
   validateTimestamp,
-  generateSessionToken,
 } from "@/lib/gameVerification";
+import { getSupabaseApiClient } from "@/lib/supabase/api";
+import { GAME_CONFIG } from "@/lib/config/game";
+import type { Database } from "@/lib/types/database";
 
 // Enable Edge Runtime for Cloudflare Pages compatibility
 export const runtime = "edge";
+
+type GameRecordInsert = Database["public"]["Tables"]["game_records"]["Insert"];
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,12 +19,11 @@ export async function POST(request: NextRequest) {
 
     // ===== 1. BASIC FIELD VALIDATION =====
     if (
-      !payload.session_id || // User session for database
-      !payload.game_session_id || // Game session for anti-cheat
+      !payload.session_id ||
+      !payload.game_session_id ||
       !payload.name ||
       typeof payload.final_round !== "number" ||
-      !payload.verification_hash ||
-      typeof payload.timestamp !== "number"
+      !payload.signature
     ) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
@@ -28,19 +31,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ===== 2. VERIFY TIMESTAMP (Anti-replay attack) =====
-    const timestampCheck = validateTimestamp(payload.timestamp, 60); // 60 seconds tolerance
-    if (!timestampCheck.valid) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid request",
-        },
-        { status: 403 }
-      );
-    }
-
-    // ===== 3. VERIFY GAME HASH (Anti-cheat) =====
+    // ===== 2. VERIFY HMAC SIGNATURE (Anti-cheat) =====
     const secret = process.env.GAME_VERIFICATION_SECRET;
     if (!secret) {
       return NextResponse.json(
@@ -49,35 +40,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Recreate game-session-specific token (use game_session_id, NOT session_id)
-    const sessionToken = await generateSessionToken(
-      payload.game_session_id,
-      secret
-    );
-
-    // Verify hash
-    const isValidHash = await verifyGameHash(
+    const sigCheck = await verifyGameSignature(
       {
-        game_session_id: payload.game_session_id, // Use game_session_id for anti-cheat
+        game_session_id: payload.game_session_id,
         final_round: payload.final_round,
         gov_bar: payload.gov_bar,
         bus_bar: payload.bus_bar,
         wor_bar: payload.wor_bar,
         duration: payload.duration,
         ending: payload.ending,
-        timestamp: payload.timestamp,
       },
-      payload.verification_hash,
-      sessionToken
+      payload.signature,
+      secret
     );
 
-    if (!isValidHash) {
+    if (!sigCheck.valid) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid request",
-        },
+        { success: false, error: "Invalid request" },
         { status: 403 }
+      );
+    }
+
+    // ===== 3. VALIDATE TIMESTAMPS =====
+    const startTime = new Date(payload.start_time);
+    const endTime = new Date(payload.end_time);
+
+    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+      return NextResponse.json(
+        { success: false, error: "Invalid timestamps" },
+        { status: 400 }
+      );
+    }
+
+    const timeCheck = validateTimestamp(startTime, endTime, payload.duration);
+    if (!timeCheck.valid) {
+      return NextResponse.json(
+        { success: false, error: "Invalid request" },
+        { status: 400 }
       );
     }
 
@@ -94,94 +93,65 @@ export async function POST(request: NextRequest) {
 
     if (!progressionCheck.valid) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid request",
-        },
+        { success: false, error: "Invalid request" },
         { status: 400 }
       );
     }
 
     // Validate name
     const name = payload.name.trim();
-
-    // Validate timestamps
-    const startTime = new Date(payload.start_time);
-    const endTime = new Date(payload.end_time);
-
-    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+    if (
+      !name ||
+      name.length < GAME_CONFIG.NAME_MIN_LENGTH ||
+      name.length > GAME_CONFIG.NAME_MAX_LENGTH
+    ) {
       return NextResponse.json(
-        { success: false, error: "Invalid timestamps" },
+        { success: false, error: "Invalid name" },
         { status: 400 }
       );
     }
 
-    if (endTime <= startTime) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "End time must be after start time",
-        },
-        { status: 400 }
-      );
-    }
+    // ===== 5. INSERT TO DATABASE (Using SDK) =====
+    const supabase = getSupabaseApiClient();
 
-    // ===== 6. INSERT TO DATABASE =====
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_ANON_KEY;
+    const insertData: GameRecordInsert = {
+      session_id: payload.session_id,
+      name: name,
+      final_round: payload.final_round,
+      total_action: payload.total_action,
+      gov_bar: payload.gov_bar,
+      bus_bar: payload.bus_bar,
+      wor_bar: payload.wor_bar,
+      start_time: payload.start_time,
+      end_time: payload.end_time,
+      duration: payload.duration,
+      ending: payload.ending,
+    };
 
-    if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json(
-        { success: false, error: "Server configuration error" },
-        { status: 500 }
-      );
-    }
+    const { data, error } = await supabase
+      .from("game_records")
+      .insert(insertData)
+      .select("id")
+      .single();
 
-    const response = await fetch(`${supabaseUrl}/rest/v1/game_records`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: supabaseKey,
-        Authorization: `Bearer ${supabaseKey}`,
-        Prefer: "return=representation",
-      },
-      body: JSON.stringify({
-        session_id: payload.session_id,
-        name: name,
-        final_round: payload.final_round,
-        total_action: payload.total_action,
-        gov_bar: payload.gov_bar,
-        bus_bar: payload.bus_bar,
-        wor_bar: payload.wor_bar,
-        start_time: payload.start_time,
-        end_time: payload.end_time,
-        duration: payload.duration,
-        ending: payload.ending,
-      }),
-    });
-
-    if (!response.ok) {
+    if (error) {
+      console.error("Supabase insert error:", error.message);
       return NextResponse.json(
         { success: false, error: "Failed to save score" },
         { status: 500 }
       );
     }
 
-    const data = await response.json();
-
     return NextResponse.json({
       success: true,
       data: {
-        id: data[0]?.id,
+        id: data.id,
         message: "Score submitted successfully",
       },
     });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-      },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }

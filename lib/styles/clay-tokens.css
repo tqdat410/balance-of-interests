@@ -1,0 +1,67 @@
+:root {
+  /* Warm Clay Color Palette */
+  --clay-bg: #fdf6e3;      /* Creamy background base */
+  --clay-surface: #fefcf5; /* Lighter surface for cards */
+  --clay-primary: #f59e0b; /* Amber 500 */
+  --clay-accent: #c43f3f;  /* Red */
+  --clay-success: #059669; /* Emerald */
+  --clay-text: #4b5563;    /* Gray 600 */
+  --clay-text-dark: #1f2937; /* Gray 800 */
+  --clay-text-muted: #9ca3af; /* Gray 400 */
+
+  /* Entity/Role Colors - Pastel versions for claymorphism */
+  --clay-gov: #fecaca;     /* Red 200 - Government */
+  --clay-gov-dark: #dc2626; /* Red 600 - Government dark */
+  --clay-biz: #bfdbfe;     /* Blue 200 - Businesses */
+  --clay-biz-dark: #2563eb; /* Blue 600 - Businesses dark */
+  --clay-work: #bbf7d0;    /* Green 200 - Workers */
+  --clay-work-dark: #16a34a; /* Green 600 - Workers dark */
+  --clay-purple: #ddd6fe;  /* Violet 200 - Purple */
+  --clay-purple-dark: #7c3aed; /* Violet 600 - Purple dark */
+
+  /* Border Radius */
+  --clay-radius-sm: 12px;
+  --clay-radius-md: 16px;
+  --clay-radius-lg: 24px;
+  --clay-radius-full: 9999px;
+
+  /* Clay Shadows */
+  /* Soft, puffy outer shadow */
+  --clay-shadow-out: 
+    9px 9px 18px rgba(170, 160, 140, 0.25), 
+    -9px -9px 18px rgba(255, 255, 255, 0.9);
+    
+  /* Deep pressed inner shadow */
+  --clay-shadow-in: 
+    inset 6px 6px 12px rgba(170, 160, 140, 0.25), 
+    inset -6px -6px 12px rgba(255, 255, 255, 0.9);
+    
+  /* Button specific floating shadow */
+  --clay-shadow-button: 
+    6px 6px 12px rgba(170, 160, 140, 0.3), 
+    -6px -6px 12px rgba(255, 255, 255, 0.95),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.4),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.05);
+
+  /* Hover state shadow - more elevated */
+  --clay-shadow-hover:
+    10px 10px 20px rgba(170, 160, 140, 0.3), 
+    -10px -10px 20px rgba(255, 255, 255, 1),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.4);
+
+  /* Active/Pressed state shadow */
+  --clay-shadow-active: 
+    inset 4px 4px 8px rgba(170, 160, 140, 0.25), 
+    inset -4px -4px 8px rgba(255, 255, 255, 0.9);
+
+  /* Role-specific shadows */
+  --clay-shadow-gov:
+    8px 8px 16px rgba(220, 38, 38, 0.15),
+    -8px -8px 16px rgba(255, 255, 255, 0.9);
+  --clay-shadow-biz:
+    8px 8px 16px rgba(37, 99, 235, 0.15),
+    -8px -8px 16px rgba(255, 255, 255, 0.9);
+  --clay-shadow-work:
+    8px 8px 16px rgba(22, 163, 74, 0.15),
+    -8px -8px 16px rgba(255, 255, 255, 0.9);
+}

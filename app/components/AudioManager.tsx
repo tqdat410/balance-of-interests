@@ -84,14 +84,17 @@ export default function AudioManager() {
       bgMusicRef.current.volume = bgVolume;
       if (bgVolume === 0) {
         bgMusicRef.current.pause();
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync music state with volume
         setIsMusicPlaying(false);
       } else if (!isMusicPlaying) {
         bgMusicRef.current
           .play()
+          // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync music state with play
           .then(() => setIsMusicPlaying(true))
           .catch(() => {});
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- isMusicPlaying intentionally excluded to prevent infinite loop
   }, [bgVolume]);
 
   useEffect(() => {
