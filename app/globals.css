@@ -298,21 +298,21 @@ button:disabled,
   animation: warningPulse 2s ease-in-out infinite;
 }
 
-/* Idle Float Animation for Cards */
-@keyframes idleFloat {
+/* Idle Zoom Animation for Cards (Z-axis breathing) */
+@keyframes idleZoom {
   0% {
-    transform: translateY(0px);
+    transform: scale(1);
   }
   50% {
-    transform: translateY(-10px);
+    transform: scale(1.03);
   }
   100% {
-    transform: translateY(0px);
+    transform: scale(1);
   }
 }
 
-.animate-idleFloat {
-  animation: idleFloat 3s ease-in-out infinite;
+.animate-idleZoom {
+  animation: idleZoom 4s ease-in-out infinite;
 }
 
 .glass3d {
