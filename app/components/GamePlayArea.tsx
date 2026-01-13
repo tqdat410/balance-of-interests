@@ -46,9 +46,9 @@ export default function GamePlayArea({
   handleActionComplete,
 }: GamePlayAreaProps) {
   return (
-    <div className="w-full h-full flex flex-col">
-      {/* Desktop Layout - centered on large screens, scaled containers */}
-      <div className="hidden md:flex w-full h-full flex-col p-2 pt-1 items-center justify-start xl:justify-center">
+    <div className="w-full min-h-full flex flex-col">
+      {/* Desktop Layout - centered on large screens, safe padding on all */}
+      <div className="hidden md:flex w-full flex-1 flex-col px-4 xl:px-6 items-center justify-center">
         {/* Chart Section - responsive max-width for larger screens */}
         <div className="w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1600px] mx-auto flex-shrink-0">
           <StatusLineChart

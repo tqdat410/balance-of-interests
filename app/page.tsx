@@ -86,16 +86,17 @@ export default function BalanceOfInterests() {
     );
   }
 
-  // Game playing - use h-screen for proper height propagation to children
+  // Game playing - min-h-screen with safe padding for laptop screens
   return (
-    <div className="h-screen w-full bg-[var(--clay-bg)] relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[var(--clay-bg)] relative overflow-auto">
       {/* Decorative Circles for Game Screen - responsive sizing */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute -top-20 -left-20 w-96 h-96 xl:w-[500px] xl:h-[500px] bg-blue-200/20 rounded-full blur-3xl" />
         <div className="absolute -bottom-20 -right-20 w-96 h-96 xl:w-[500px] xl:h-[500px] bg-amber-200/20 rounded-full blur-3xl" />
       </div>
       
-      <div className="relative z-10 w-full h-full">
+      {/* Add vertical padding for safe area on all screens */}
+      <div className="relative z-10 w-full min-h-screen py-3 md:py-4 xl:py-6">
         <GamePlayArea
           history={history}
           bars={bars}
