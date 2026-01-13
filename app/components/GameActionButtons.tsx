@@ -141,7 +141,6 @@ const GameActionButtons: React.FC<Props> = ({
             overflow-hidden
             transition-all duration-300 ease-out
             hover:scale-105 hover:z-10
-            shadow-[0_10px_20px_rgba(0,0,0,0.15)]
             animate-idleZoom
             bg-transparent
             border-none
