@@ -1,14 +1,12 @@
-/**
- * Game Events - Special events triggered at specific rounds
- */
+import { GameEvent } from "../types/game";
 
-import type { GameEvent } from "@/lib/types/game";
+const CLOUDINARY_BASE = "https://res.cloudinary.com/do6szo7zy/image/upload";
+const OPT_EVENT = "f_auto,q_auto,ar_16:9,c_fill"; // 16:9 for Events
 
 export const EVENTS: Record<number, GameEvent> = {
   5: {
     name: "Startup",
-    imageUrl:
-      "https://res.cloudinary.com/do6szo7zy/image/upload/f_auto,q_auto,w_300/start_up_xmarxz.png",
+    imageUrl: `${CLOUDINARY_BASE}/${OPT_EVENT}/v1768308253/db_khoi-nghiep_g4cswk.png`,
     positiveEffects: { Government: 15, Businesses: 15, Workers: 30 },
     negativeEffects: { Government: 0, Businesses: 0, Workers: -20 },
     isSpecialEvent: true,
@@ -16,14 +14,12 @@ export const EVENTS: Record<number, GameEvent> = {
   },
   10: {
     name: "Thiên Tai",
-    imageUrl:
-      "https://res.cloudinary.com/do6szo7zy/image/upload/f_auto,q_auto,w_300/thien_tai_xg3v4z.png",
+    imageUrl: `${CLOUDINARY_BASE}/${OPT_EVENT}/v1768308254/db_thien-tai_ocv2f4.png`,
     effects: { Government: -10, Businesses: -10, Workers: -10 },
   },
   15: {
     name: "Đầu Tư Sản Phẩm Mới",
-    imageUrl:
-      "https://res.cloudinary.com/do6szo7zy/image/upload/f_auto,q_auto,w_300/sp_moit_ouqyl5.png",
+    imageUrl: `${CLOUDINARY_BASE}/${OPT_EVENT}/v1768308251/db_dau-tu_vm9m4i.png`,
     positiveEffects: { Government: 20, Businesses: 40, Workers: 20 },
     negativeEffects: { Government: 0, Businesses: -20, Workers: 0 },
     isSpecialEvent: true,
@@ -31,14 +27,12 @@ export const EVENTS: Record<number, GameEvent> = {
   },
   20: {
     name: "Khủng Hoảng Kinh Tế",
-    imageUrl:
-      "https://res.cloudinary.com/do6szo7zy/image/upload/f_auto,q_auto,w_300/khung_hoang_kt_moajh4.png",
+    imageUrl: `${CLOUDINARY_BASE}/${OPT_EVENT}/v1768308252/db_khkt_jshyig.png`,
     effects: { Government: -20, Businesses: -20, Workers: -20 },
   },
   25: {
     name: "Chọn Phe (Quốc Tế)",
-    imageUrl:
-      "https://res.cloudinary.com/do6szo7zy/image/upload/f_auto,q_auto,w_300/chon_phe_pvqwwc.png",
+    imageUrl: `${CLOUDINARY_BASE}/${OPT_EVENT}/v1768308251/db_chon-phe_pncor9.png`,
     positiveEffects: { Government: 49, Businesses: 49, Workers: 49 },
     negativeEffects: { Government: -30, Businesses: -30, Workers: -30 },
     isSpecialEvent: true,
@@ -46,8 +40,7 @@ export const EVENTS: Record<number, GameEvent> = {
   },
   30: {
     name: "Chiến Tranh",
-    imageUrl:
-      "https://res.cloudinary.com/do6szo7zy/image/upload/f_auto,q_auto,w_300/chien_tranh_knrld0.png",
+    imageUrl: `${CLOUDINARY_BASE}/${OPT_EVENT}/v1768308251/db_chien-tranh_k9mgjp.png`,
     effects: { Government: -30, Businesses: -30, Workers: -30 },
   },
 };

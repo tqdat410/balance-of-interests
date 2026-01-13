@@ -1,21 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { Entity, GameAction, ActionEffect } from "@/lib/types";
 
-type Entity = "Government" | "Businesses" | "Workers";
-interface GameAction {
-  name: string;
-  imageUrl: string;
-  effects: Record<Entity, number>;
-  special?: boolean;
-}
 interface Props {
   actions: GameAction[];
   handleAction: (action: GameAction) => void;
   eventMessage: string | null;
   entity: Entity;
-  onActionComplete?: () => void; // New prop to notify when action animation should reset
-  round?: number; // Add round prop to display modified effects
+  onActionComplete?: () => void;
+  round?: number;
 }
 
 const LABELS: Record<Entity, string> = {
@@ -23,26 +17,16 @@ const LABELS: Record<Entity, string> = {
   Businesses: "D",
   Workers: "L",
 };
-const roleGlassClass = {
-  Government: "clay-card-gov",
-  Businesses: "clay-card-biz",
-  Workers: "clay-card-work",
-};
 
 const DEFAULT_IMG = "/actions/placeholder.png";
 
-const actionNameColor: Record<Entity, string> = {
-  Government: "text-red-800 font-bold",
-  Businesses: "text-blue-800 font-bold",
-  Workers: "text-green-800 font-bold",
-};
 const effectColor = (role: Entity, value: number) => {
   if (role === "Government") {
-    return value > 0 ? "text-green-600" : value < 0 ? "text-red-600" : "";
+    return value > 0 ? "text-green-600" : value < 0 ? "text-red-600" : "text-gray-500";
   } else if (role === "Businesses") {
-    return value > 0 ? "text-green-600" : value < 0 ? "text-red-600" : "";
+    return value > 0 ? "text-green-600" : value < 0 ? "text-red-600" : "text-gray-500";
   } else {
-    return value > 0 ? "text-green-600" : value < 0 ? "text-red-600" : "";
+    return value > 0 ? "text-green-600" : value < 0 ? "text-red-600" : "text-gray-500";
   }
 };
 
@@ -52,12 +36,11 @@ const GameActionButtons: React.FC<Props> = ({
   eventMessage,
   entity,
   onActionComplete,
-  round = 1, // Default to round 1 if not provided
+  round = 1,
 }) => {
-  const [isAnimating, setIsAnimating] = useState(false);
   const [clickedAction, setClickedAction] = useState<string | null>(null);
 
-  // Function to get modified effects based on round, only for normal actions (not special events)
+  // Function to get modified effects based on round
   const getModifiedEffects = (
     originalEffects: Record<Entity, number>,
     isSpecialEvent = false
@@ -86,27 +69,11 @@ const GameActionButtons: React.FC<Props> = ({
     return modifiedEffects;
   };
 
-  useEffect(() => {
-    // Trigger fade-in animation when actions change
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: animation trigger on prop change
-    setIsAnimating(true);
-    const timer = setTimeout(() => setIsAnimating(false), 600);
-    return () => clearTimeout(timer);
-  }, [actions]);
-
-  // Memoize action handler to prevent unnecessary re-renders
   const memoizedHandleAction = useCallback(
     (action: GameAction) => {
-      // Prevent multiple clicks on the same action
       if (clickedAction === action.name) return;
-
-      // Set clicked action and start simple animation
       setClickedAction(action.name);
-
-      // Call the actual action handler
       handleAction(action);
-
-      // Reset clicked state after 1.5s
       setTimeout(() => {
         setClickedAction(null);
         if (onActionComplete) {
@@ -118,57 +85,82 @@ const GameActionButtons: React.FC<Props> = ({
   );
 
   return (
-    <div className="action-buttons-container mobile-actions w-full flex flex-row flex-wrap justify-center gap-6 items-center">
-      {actions.map((action, idx) => (
-        <button
-          key={`${action.name}-${idx}`}
-          onClick={() => memoizedHandleAction(action)}
-          disabled={!!eventMessage || clickedAction === action.name}
-          style={
-            {
-              "--idle-scale": 1.02 + Math.random() * 0.04, // Random scale between 1.02 and 1.06
-              animationDelay: `${Math.random() * 3}s`, // Random delay 0-3s
-              animationDuration: `${5 + Math.random() * 3}s`, // Random duration 5s-8s (very slow)
-            } as React.CSSProperties
-          }
-          className={`
-            relative
-            w-[180px] h-[320px] 
-            min-w-[135px] min-h-[240px]
-            max-w-[180px] max-h-[320px]
-            aspect-[9/16]
-            rounded-2xl
-            overflow-hidden
-            transition-all duration-300 ease-out
-            hover:scale-105 hover:z-10
-            animate-idleZoom
-            bg-transparent
-            border-none
-            p-0
-            ${
-              clickedAction === action.name
-                ? "opacity-0 scale-150 transition-opacity duration-500" // Disappear effect on click
-                : ""
+    <div className="action-buttons-container w-full flex flex-row flex-wrap justify-center gap-6 items-center">
+      {actions.map((action, idx) => {
+        const modifiedEffects = getModifiedEffects(action.effects);
+        return (
+          <button
+            key={`${action.name}-${idx}`}
+            onClick={() => memoizedHandleAction(action)}
+            disabled={!!eventMessage || clickedAction === action.name}
+            style={
+              {
+                "--idle-scale": 1.02 + Math.random() * 0.04,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${5 + Math.random() * 3}s`,
+              } as React.CSSProperties
             }
-          `}
-        >
-          {action.imageUrl ? (
-            <img
-              src={action.imageUrl}
-              alt={action.name}
-              className="object-cover w-full h-full rounded-2xl pointer-events-none select-none"
-              draggable={false}
-            />
-          ) : (
-            <img
-              src={DEFAULT_IMG}
-              alt="Placeholder"
-              className="object-cover w-full h-full rounded-2xl pointer-events-none select-none"
-              draggable={false}
-            />
-          )}
-        </button>
-      ))}
+            className={`
+              group relative
+              w-[200px] h-[355px]
+              aspect-[9/16]
+              rounded-2xl
+              overflow-hidden
+              transition-all duration-300 ease-out
+              hover:scale-105 hover:z-10 hover:shadow-xl
+              animate-idleZoom
+              bg-white
+              border-none
+              p-0
+              clay-card
+              ${
+                clickedAction === action.name
+                  ? "opacity-0 scale-150 transition-opacity duration-500"
+                  : ""
+              }
+            `}
+          >
+            {/* Image Layer */}
+            <div className="absolute inset-0 z-0">
+              <img
+                src={action.imageUrl || DEFAULT_IMG}
+                alt={action.name}
+                className="object-cover w-full h-full pointer-events-none select-none"
+                draggable={false}
+              />
+              {/* Gradient Overlay for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
+            </div>
+
+            {/* Hover Name Layer - Centered */}
+            <div className="absolute inset-0 z-20 flex items-center justify-center p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]">
+              <span className="text-white font-bold text-xl text-center drop-shadow-md">
+                {action.name}
+              </span>
+            </div>
+
+            {/* Persistent Effects Layer - Bottom */}
+            <div className="absolute bottom-0 left-0 right-0 z-10 p-3 pb-4 flex flex-col gap-1 items-center">
+               <div className="flex flex-wrap justify-center gap-2">
+                {(Object.entries(modifiedEffects) as [Entity, number][]).map(
+                  ([e, value]) =>
+                    value !== 0 ? (
+                      <div
+                        key={e}
+                        className="bg-white/90 px-2 py-1 rounded-lg shadow-sm flex items-center text-sm font-bold backdrop-blur-sm"
+                      >
+                        <span className="text-slate-700 mr-1">{LABELS[e]}:</span>
+                        <span className={effectColor(entity, value)}>
+                          {value > 0 ? `+${value}` : value}
+                        </span>
+                      </div>
+                    ) : null
+                )}
+              </div>
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 };
