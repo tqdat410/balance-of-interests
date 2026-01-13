@@ -96,14 +96,13 @@ const GameActionButtons: React.FC<Props> = ({
             }
             className={`
               group relative
-              w-[200px] h-[355px]
-              aspect-[9/16]
+              flex flex-col items-center
+              w-[160px] md:w-[180px] lg:w-[200px]
               rounded-2xl
-              overflow-hidden
               transition-all duration-300 ease-out
               hover:scale-105 hover:z-10
               animate-idleZoom
-              bg-white
+              bg-transparent
               border-none
               p-0
               ${
@@ -113,36 +112,34 @@ const GameActionButtons: React.FC<Props> = ({
               }
             `}
           >
-            {/* Image Layer */}
-            <div className="absolute inset-0 z-0">
+            {/* Image Layer - Aspect 9:16 */}
+            <div className="w-full aspect-[9/16] relative rounded-2xl overflow-hidden shadow-sm">
               <img
                 src={action.imageUrl || DEFAULT_IMG}
                 alt={action.name}
                 className="object-cover w-full h-full pointer-events-none select-none"
                 draggable={false}
               />
-              {/* Gradient Overlay for text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
+              
+              {/* Hover Name Layer - Centered over Image */}
+              <div className="absolute inset-0 z-20 flex items-center justify-center p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]">
+                <span className="text-white font-bold text-lg text-center drop-shadow-md">
+                  {action.name}
+                </span>
+              </div>
             </div>
 
-            {/* Hover Name Layer - Centered */}
-            <div className="absolute inset-0 z-20 flex items-center justify-center p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]">
-              <span className="text-white font-bold text-xl text-center drop-shadow-md">
-                {action.name}
-              </span>
-            </div>
-
-            {/* Persistent Effects Layer - Bottom */}
-            <div className="absolute bottom-0 left-0 right-0 z-10 p-3 pb-4 flex flex-col gap-1 items-center">
-               <div className="flex flex-wrap justify-center gap-2">
+            {/* Effects Layer - Below Image */}
+            <div className="w-full mt-3 flex flex-col gap-1 items-center">
+               <div className="flex flex-wrap justify-center gap-1.5">
                 {(Object.entries(modifiedEffects) as [Entity, number][]).map(
                   ([e, value]) =>
                     value !== 0 ? (
                       <div
                         key={e}
-                        className="bg-white/90 px-2 py-1 rounded-lg shadow-sm flex items-center text-sm font-bold backdrop-blur-sm"
+                        className="bg-white/50 px-2 py-0.5 rounded-md flex items-center text-xs font-bold"
                       >
-                        <span className="text-slate-700 mr-1">{LABELS[e]}:</span>
+                        <span className="text-slate-600 mr-1">{LABELS[e]}:</span>
                         <span className={effectColor(entity, value)}>
                           {Math.abs(value)}
                         </span>
