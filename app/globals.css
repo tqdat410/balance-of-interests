@@ -312,7 +312,11 @@ button:disabled,
 }
 
 .animate-idleZoom {
-  animation: idleZoom 4s ease-in-out infinite;
+  animation: idleZoom 6s ease-in-out infinite;
+}
+
+.animate-idleZoom:hover {
+  animation-play-state: paused;
 }
 
 .glass3d {

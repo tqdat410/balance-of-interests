@@ -127,8 +127,8 @@ const GameActionButtons: React.FC<Props> = ({
           style={
             {
               "--idle-scale": 1.02 + Math.random() * 0.04, // Random scale between 1.02 and 1.06
-              animationDelay: `${Math.random() * 2}s`, // Random delay 0-2s
-              animationDuration: `${3 + Math.random()}s`, // Random duration 3-4s
+              animationDelay: `${Math.random() * 3}s`, // Random delay 0-3s
+              animationDuration: `${5 + Math.random() * 3}s`, // Random duration 5s-8s (very slow)
             } as React.CSSProperties
           }
           className={`
