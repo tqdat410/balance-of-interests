@@ -59,24 +59,24 @@ export default function GamePlayArea({
           />
         </div>
 
-        {/* Action Area - Compact below chart, responsive max-width */}
-        <div className="w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1600px] mx-auto mt-2 xl:mt-4 flex flex-col items-center">
+        {/* Action Area - Compact, responsive */}
+        <div className="w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1600px] mx-auto mt-1 xl:mt-3 flex flex-col items-center">
           {currentEntity && (
             <>
-              {/* Info Text - responsive sizing */}
-              <div className="text-center mb-1 xl:mb-2">
-                <span className="text-slate-500 text-sm xl:text-base">
+              {/* Info Text - compact on laptop */}
+              <div className="text-center mb-0.5 xl:mb-2">
+                <span className="text-slate-500 text-xs xl:text-base">
                   Lượt {turnIndex + 1}/{turnOrder.length} -{" "}
                 </span>
-                <span className="text-base xl:text-lg font-semibold text-purple-600">
+                <span className="text-sm xl:text-lg font-semibold text-purple-600">
                   {currentEntity === "Government" && "Nhà Nước"}
                   {currentEntity === "Businesses" && "Doanh Nghiệp"}
                   {currentEntity === "Workers" && "Người Lao Động"}
                 </span>
               </div>
               
-              {/* Cards - Centered tightly below text */}
-              <div className="w-full flex justify-center pt-1">
+              {/* Cards - Centered */}
+              <div className="w-full flex justify-center">
                 <GameActionButtons
                   actions={availableActions}
                   handleAction={handleAction}

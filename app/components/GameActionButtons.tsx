@@ -97,7 +97,7 @@ const GameActionButtons: React.FC<Props> = ({
             className={`
               group relative
               flex flex-col items-center
-              w-[160px] md:w-[180px] lg:w-[200px] xl:w-[240px] 2xl:w-[280px]
+              h-[45vh] max-h-[400px] min-h-[200px]
               aspect-[9/16]
               rounded-2xl xl:rounded-3xl
               transition-all duration-300 ease-out

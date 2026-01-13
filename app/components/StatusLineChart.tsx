@@ -271,8 +271,9 @@ const StatusLineChart: React.FC<Props> = ({
           boxShadow: "inset 2px 2px 6px rgba(255, 255, 255, 0.8), inset -2px -2px 6px rgba(170, 160, 140, 0.1)",
         }}
       >
-        {/* Chart container with responsive height: 220px base, 280px xl, 320px 2xl */}
-        <div ref={chartContainerRef} className="flex h-[220px] xl:h-[280px] 2xl:h-[320px]">
+        {/* Chart container - flexible height based on viewport */}
+        {/* Uses vh units: ~28vh on laptop, scales up on larger screens */}
+        <div ref={chartContainerRef} className="flex h-[28vh] min-h-[180px] max-h-[320px]">
           {/* Sticky Y-Axis - Uses explicit HTML positioning for perfect reliability */}
           <div
             className="flex-shrink-0 z-10 relative"
@@ -422,12 +423,12 @@ const StatusLineChart: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Current values display (Legend) - responsive sizing */}
-      <div className="flex justify-center gap-4 xl:gap-6 mt-1 xl:mt-2">
+      {/* Current values display (Legend) - compact on laptop, larger on big screens */}
+      <div className="flex justify-center gap-3 xl:gap-6 mt-1">
         {(["Government", "Businesses", "Workers"] as Entity[]).map((entity) => (
           <div
             key={entity}
-            className="flex items-center gap-1.5 xl:gap-2 px-3 xl:px-4 py-1.5 xl:py-2 rounded-full transition-all"
+            className="flex items-center gap-1 xl:gap-2 px-2 xl:px-4 py-1 xl:py-2 rounded-full transition-all"
             style={{
               background: `linear-gradient(135deg, ${ENTITY_COLORS[entity]}15 0%, ${ENTITY_COLORS[entity]}05 100%)`,
               border: `1px solid ${ENTITY_COLORS[entity]}40`,
@@ -435,13 +436,13 @@ const StatusLineChart: React.FC<Props> = ({
             }}
           >
              <div
-              className="w-2.5 h-2.5 xl:w-3 xl:h-3 rounded-full shadow-sm"
+              className="w-2 h-2 xl:w-3 xl:h-3 rounded-full shadow-sm"
               style={{ backgroundColor: ENTITY_COLORS[entity] }}
             />
-            <span className="text-xs xl:text-sm font-bold" style={{ color: ENTITY_COLORS[entity] }}>
+            <span className="text-[10px] xl:text-sm font-bold" style={{ color: ENTITY_COLORS[entity] }}>
               {ENTITY_LABELS[entity]}
             </span>
-            <span className="text-xs xl:text-sm font-semibold text-slate-600 ml-0.5 xl:ml-1">
+            <span className="text-[10px] xl:text-sm font-semibold text-slate-600">
               {currentBars[entity]}
             </span>
           </div>

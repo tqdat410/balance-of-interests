@@ -105,10 +105,9 @@ export default function LeaderboardPage() {
       <div
         className="absolute inset-0 z-0"
         style={{
-          background: "#ffffff",
-          backgroundImage: `
-            radial-gradient(circle at top center, rgba(59, 130, 246, 0.5), transparent 70%)
-          `,
+          backgroundImage: "url('/background/bg_leaderboard.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       />
 
