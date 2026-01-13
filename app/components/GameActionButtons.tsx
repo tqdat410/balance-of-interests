@@ -21,13 +21,7 @@ const LABELS: Record<Entity, string> = {
 const DEFAULT_IMG = "/actions/placeholder.png";
 
 const effectColor = (role: Entity, value: number) => {
-  if (role === "Government") {
-    return value > 0 ? "text-green-600" : value < 0 ? "text-red-600" : "text-gray-500";
-  } else if (role === "Businesses") {
-    return value > 0 ? "text-green-600" : value < 0 ? "text-red-600" : "text-gray-500";
-  } else {
-    return value > 0 ? "text-green-600" : value < 0 ? "text-red-600" : "text-gray-500";
-  }
+  return value > 0 ? "text-green-600 font-bold" : value < 0 ? "text-red-600 font-bold" : "text-gray-500 font-bold";
 };
 
 const GameActionButtons: React.FC<Props> = ({
@@ -107,12 +101,11 @@ const GameActionButtons: React.FC<Props> = ({
               rounded-2xl
               overflow-hidden
               transition-all duration-300 ease-out
-              hover:scale-105 hover:z-10 hover:shadow-xl
+              hover:scale-105 hover:z-10
               animate-idleZoom
               bg-white
               border-none
               p-0
-              clay-card
               ${
                 clickedAction === action.name
                   ? "opacity-0 scale-150 transition-opacity duration-500"
@@ -151,7 +144,7 @@ const GameActionButtons: React.FC<Props> = ({
                       >
                         <span className="text-slate-700 mr-1">{LABELS[e]}:</span>
                         <span className={effectColor(entity, value)}>
-                          {value > 0 ? `+${value}` : value}
+                          {Math.abs(value)}
                         </span>
                       </div>
                     ) : null
