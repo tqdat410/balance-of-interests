@@ -124,9 +124,13 @@ const GameActionButtons: React.FC<Props> = ({
           key={`${action.name}-${idx}`}
           onClick={() => memoizedHandleAction(action)}
           disabled={!!eventMessage || clickedAction === action.name}
-          style={{
-            animationDelay: `${idx * 0.15}s`, // Staggered idle animation
-          }}
+          style={
+            {
+              "--idle-scale": 1.02 + Math.random() * 0.04, // Random scale between 1.02 and 1.06
+              animationDelay: `${Math.random() * 2}s`, // Random delay 0-2s
+              animationDuration: `${3 + Math.random()}s`, // Random duration 3-4s
+            } as React.CSSProperties
+          }
           className={`
             relative
             w-[180px] h-[320px] 

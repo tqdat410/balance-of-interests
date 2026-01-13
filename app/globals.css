@@ -304,7 +304,7 @@ button:disabled,
     transform: scale(1);
   }
   50% {
-    transform: scale(1.03);
+    transform: scale(var(--idle-scale, 1.03));
   }
   100% {
     transform: scale(1);
