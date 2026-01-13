@@ -48,7 +48,7 @@ export default function GamePlayArea({
   return (
     <div className="w-full h-full flex flex-col">
       {/* Desktop Layout */}
-      <div className="hidden md:flex w-full h-full flex-col p-2 pt-1 gap-2">
+      <div className="hidden md:flex w-full h-full flex-col p-2 pt-1 gap-1">
         <div className="w-full max-w-6xl mx-auto">
           <StatusLineChart
             history={history}
@@ -58,21 +58,21 @@ export default function GamePlayArea({
           />
         </div>
 
-        <div className="flex-1 flex gap-4 max-w-6xl mx-auto w-full">
-          <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex gap-4 max-w-6xl mx-auto w-full overflow-hidden">
+          <div className="flex-1 flex flex-col h-full justify-start">
             {currentEntity && (
               <>
-                <div className="text-center mb-2">
-                  <span className="text-slate-500">
+                <div className="text-center mb-1">
+                  <span className="text-slate-500 text-sm">
                     Lượt {turnIndex + 1}/{turnOrder.length} -{" "}
                   </span>
-                  <span className="text-lg font-semibold text-purple-600">
+                  <span className="text-base font-semibold text-purple-600">
                     {currentEntity === "Government" && "Nhà Nước"}
                     {currentEntity === "Businesses" && "Doanh Nghiệp"}
                     {currentEntity === "Workers" && "Người Lao Động"}
                   </span>
                 </div>
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-start justify-center pt-2">
                   <GameActionButtons
                     actions={availableActions}
                     handleAction={handleAction}

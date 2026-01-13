@@ -59,7 +59,7 @@ const CHART_WIDTH = TOTAL_TURNS * PIXELS_PER_POINT;
 // Y-axis width for sticky positioning
 const Y_AXIS_WIDTH = 36;
 // Chart height
-const CHART_HEIGHT = 280;
+const CHART_HEIGHT = 220; // Reduced from 280 to save space on laptop
 // Y-axis display range (0-60 for display, actual values 0-50)
 const Y_MAX = 60;
 // Y-axis ticks (do not show 60)
