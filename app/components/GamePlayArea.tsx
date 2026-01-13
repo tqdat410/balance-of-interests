@@ -47,10 +47,10 @@ export default function GamePlayArea({
 }: GamePlayAreaProps) {
   return (
     <div className="w-full h-full flex flex-col">
-      {/* Desktop Layout */}
-      <div className="hidden md:flex w-full h-full flex-col p-2 pt-1 items-center justify-start">
-        {/* Chart Section */}
-        <div className="w-full max-w-6xl mx-auto flex-shrink-0">
+      {/* Desktop Layout - centered on large screens, scaled containers */}
+      <div className="hidden md:flex w-full h-full flex-col p-2 pt-1 items-center justify-start xl:justify-center">
+        {/* Chart Section - responsive max-width for larger screens */}
+        <div className="w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1600px] mx-auto flex-shrink-0">
           <StatusLineChart
             history={history}
             currentBars={bars}
@@ -59,16 +59,16 @@ export default function GamePlayArea({
           />
         </div>
 
-        {/* Action Area - Compact below chart */}
-        <div className="w-full max-w-6xl mx-auto mt-2 flex flex-col items-center">
+        {/* Action Area - Compact below chart, responsive max-width */}
+        <div className="w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1600px] mx-auto mt-2 xl:mt-4 flex flex-col items-center">
           {currentEntity && (
             <>
-              {/* Info Text */}
-              <div className="text-center mb-1">
-                <span className="text-slate-500 text-sm">
+              {/* Info Text - responsive sizing */}
+              <div className="text-center mb-1 xl:mb-2">
+                <span className="text-slate-500 text-sm xl:text-base">
                   Lượt {turnIndex + 1}/{turnOrder.length} -{" "}
                 </span>
-                <span className="text-base font-semibold text-purple-600">
+                <span className="text-base xl:text-lg font-semibold text-purple-600">
                   {currentEntity === "Government" && "Nhà Nước"}
                   {currentEntity === "Businesses" && "Doanh Nghiệp"}
                   {currentEntity === "Workers" && "Người Lao Động"}

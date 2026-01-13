@@ -79,7 +79,7 @@ const GameActionButtons: React.FC<Props> = ({
   );
 
   return (
-    <div className="action-buttons-container w-full flex flex-row flex-wrap justify-center gap-6 items-center">
+    <div className="action-buttons-container w-full flex flex-row flex-wrap justify-center gap-4 xl:gap-6 2xl:gap-8 items-center">
       {actions.map((action, idx) => {
         const modifiedEffects = getModifiedEffects(action.effects);
         return (
@@ -97,9 +97,9 @@ const GameActionButtons: React.FC<Props> = ({
             className={`
               group relative
               flex flex-col items-center
-              w-[160px] md:w-[180px] lg:w-[200px]
+              w-[160px] md:w-[180px] lg:w-[200px] xl:w-[240px] 2xl:w-[280px]
               aspect-[9/16]
-              rounded-2xl
+              rounded-2xl xl:rounded-3xl
               transition-all duration-300 ease-out
               hover:scale-105 hover:z-10
               animate-idleZoom
@@ -124,21 +124,21 @@ const GameActionButtons: React.FC<Props> = ({
               />
               
               {/* Hover Name Layer - Centered over Image */}
-              <div className="absolute inset-0 z-20 flex items-center justify-center p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]">
-                <span className="text-white font-bold text-lg text-center drop-shadow-md">
+              <div className="absolute inset-0 z-20 flex items-center justify-center p-2 xl:p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]">
+                <span className="text-white font-bold text-lg xl:text-xl 2xl:text-2xl text-center drop-shadow-md">
                   {action.name}
                 </span>
               </div>
 
                {/* Effects Layer - Bottom Overlay */}
-               <div className="absolute bottom-0 left-0 right-0 z-10 p-2 pb-3 flex flex-col gap-1 items-center bg-gradient-to-t from-black/60 to-transparent">
-                  <div className="flex flex-wrap justify-center gap-1.5">
+               <div className="absolute bottom-0 left-0 right-0 z-10 p-2 pb-3 xl:p-3 xl:pb-4 flex flex-col gap-1 items-center bg-gradient-to-t from-black/60 to-transparent">
+                  <div className="flex flex-wrap justify-center gap-1.5 xl:gap-2">
                    {(Object.entries(modifiedEffects) as [Entity, number][]).map(
                      ([e, value]) =>
                        value !== 0 ? (
                          <div
                            key={e}
-                           className="bg-white/80 px-2 py-0.5 rounded-md flex items-center text-xs font-bold backdrop-blur-sm"
+                           className="bg-white/80 px-2 py-0.5 xl:px-3 xl:py-1 rounded-md xl:rounded-lg flex items-center text-xs xl:text-sm font-bold backdrop-blur-sm"
                          >
                            <span className="text-slate-700 mr-1">{LABELS[e]}:</span>
                            <span className={effectColor(entity, value)}>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useRef, useEffect } from "react";
+import React, { useMemo, useRef, useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -58,8 +58,9 @@ const PIXELS_PER_POINT = 35;
 const CHART_WIDTH = TOTAL_TURNS * PIXELS_PER_POINT;
 // Y-axis width for sticky positioning
 const Y_AXIS_WIDTH = 36;
-// Chart height
-const CHART_HEIGHT = 220; // Reduced from 280 to save space on laptop
+// Chart height - responsive values for different screen sizes
+// Base: 220px for laptops, scales up for larger screens
+const CHART_HEIGHT = 220; // Base height, CSS will override for xl/2xl
 // Y-axis display range (0-60 for display, actual values 0-50)
 const Y_MAX = 60;
 // Y-axis ticks (do not show 60)
@@ -77,7 +78,24 @@ const StatusLineChart: React.FC<Props> = ({
   currentTurnIndex,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
   const lastDataPointRef = useRef<number>(0);
+  const [chartHeight, setChartHeight] = useState(CHART_HEIGHT);
+
+  // Update chart height when container resizes (for responsive CSS classes)
+  useEffect(() => {
+    const updateHeight = () => {
+      if (chartContainerRef.current) {
+        setChartHeight(chartContainerRef.current.clientHeight);
+      }
+    };
+    updateHeight();
+    const resizeObserver = new ResizeObserver(updateHeight);
+    if (chartContainerRef.current) {
+      resizeObserver.observe(chartContainerRef.current);
+    }
+    return () => resizeObserver.disconnect();
+  }, []);
 
   // Build chart data from history with sequential X values
   const chartData = useMemo(() => {
@@ -253,7 +271,8 @@ const StatusLineChart: React.FC<Props> = ({
           boxShadow: "inset 2px 2px 6px rgba(255, 255, 255, 0.8), inset -2px -2px 6px rgba(170, 160, 140, 0.1)",
         }}
       >
-        <div className="flex" style={{ height: CHART_HEIGHT }}>
+        {/* Chart container with responsive height: 220px base, 280px xl, 320px 2xl */}
+        <div ref={chartContainerRef} className="flex h-[220px] xl:h-[280px] 2xl:h-[320px]">
           {/* Sticky Y-Axis - Uses explicit HTML positioning for perfect reliability */}
           <div
             className="flex-shrink-0 z-10 relative"
@@ -266,8 +285,8 @@ const StatusLineChart: React.FC<Props> = ({
             <div className="relative w-full h-full">
               {Y_TICKS.map((tick) => {
                 // Calculate position exactly matching Recharts linear scale
-                // Recharts with explicit X-axis height subtracts that height from available vertical space
-                const gridHeight = CHART_HEIGHT - MARGIN_TOP - MARGIN_BOTTOM - X_AXIS_HEIGHT;
+                // Uses dynamic chartHeight for responsive sizing
+                const gridHeight = chartHeight - MARGIN_TOP - MARGIN_BOTTOM - X_AXIS_HEIGHT;
                 const percentage = tick / Y_MAX;
                 const topPosition = MARGIN_TOP + gridHeight * (1 - percentage);
                 
@@ -403,12 +422,12 @@ const StatusLineChart: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Current values display (Legend moved here) */}
-      <div className="flex justify-center gap-6 mt-1">
+      {/* Current values display (Legend) - responsive sizing */}
+      <div className="flex justify-center gap-4 xl:gap-6 mt-1 xl:mt-2">
         {(["Government", "Businesses", "Workers"] as Entity[]).map((entity) => (
           <div
             key={entity}
-            className="flex items-center gap-2 px-4 py-2 rounded-full transition-all"
+            className="flex items-center gap-1.5 xl:gap-2 px-3 xl:px-4 py-1.5 xl:py-2 rounded-full transition-all"
             style={{
               background: `linear-gradient(135deg, ${ENTITY_COLORS[entity]}15 0%, ${ENTITY_COLORS[entity]}05 100%)`,
               border: `1px solid ${ENTITY_COLORS[entity]}40`,
@@ -416,13 +435,13 @@ const StatusLineChart: React.FC<Props> = ({
             }}
           >
              <div
-              className="w-3 h-3 rounded-full shadow-sm"
+              className="w-2.5 h-2.5 xl:w-3 xl:h-3 rounded-full shadow-sm"
               style={{ backgroundColor: ENTITY_COLORS[entity] }}
             />
-            <span className="text-sm font-bold" style={{ color: ENTITY_COLORS[entity] }}>
+            <span className="text-xs xl:text-sm font-bold" style={{ color: ENTITY_COLORS[entity] }}>
               {ENTITY_LABELS[entity]}
             </span>
-            <span className="text-sm font-semibold text-slate-600 ml-1">
+            <span className="text-xs xl:text-sm font-semibold text-slate-600 ml-0.5 xl:ml-1">
               {currentBars[entity]}
             </span>
           </div>

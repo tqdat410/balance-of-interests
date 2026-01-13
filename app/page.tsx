@@ -86,13 +86,13 @@ export default function BalanceOfInterests() {
     );
   }
 
-  // Game playing
+  // Game playing - use h-screen for proper height propagation to children
   return (
-    <div className="min-h-screen w-full bg-[var(--clay-bg)] relative overflow-hidden">
-      {/* Decorative Circles for Game Screen */}
+    <div className="h-screen w-full bg-[var(--clay-bg)] relative overflow-hidden">
+      {/* Decorative Circles for Game Screen - responsive sizing */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute -top-20 -left-20 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl" />
+        <div className="absolute -top-20 -left-20 w-96 h-96 xl:w-[500px] xl:h-[500px] bg-blue-200/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-20 -right-20 w-96 h-96 xl:w-[500px] xl:h-[500px] bg-amber-200/20 rounded-full blur-3xl" />
       </div>
       
       <div className="relative z-10 w-full h-full">
