@@ -17,40 +17,77 @@ interface Props {
   onContinue: () => void;
   onExecute?: () => void;
   onSkip?: () => void;
-  round?: number; // Add round prop to display modified effects
+  round?: number;
 }
+
+// Entity label mapping
+const ENTITY_LABELS: Record<string, string> = {
+  Government: "N",
+  Businesses: "D",
+  Workers: "L",
+};
+
+const ENTITY_NAMES: Record<string, string> = {
+  Government: "Nhà nước",
+  Businesses: "Doanh nghiệp",
+  Workers: "Người lao động",
+};
 
 const EventPopup: React.FC<Props> = ({
   event,
   onContinue,
   onExecute,
   onSkip,
-  // round prop kept for future use
 }) => {
-  // Suppress unused variable warning
-  void 0;
   const isSpecial = event.isSpecialEvent;
 
-  // Luôn trả về chỉ số gốc, không áp dụng -1/-2 cho event popup
+  // Return original effects without modifications
   const getOriginalEffects = (originalEffects: Record<string, number>) => {
     return { ...originalEffects };
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-opacity-75 animate-fadeIn" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop with blur */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fadeIn" />
 
-      {/* Modal Container */}
-      <div className=" relative z-10 animate-popupScaleIn">
-        <div className="mobile-event-popup clay-card max-w-lg w-full mx-4 p-8 justify-center items-center flex flex-col">
-          {/* Warning Icon */}
-          <h2 className="text-3xl text-yellow-500">
-            {isSpecial ? "Cơ Hội Đặc Biệt" : "Sự Kiện Đặc Biệt"}
-          </h2>
+      {/* Modal Container - Claymorphism style */}
+      <div className="relative z-10 w-full max-w-md animate-popupScaleIn">
+        <div
+          className="rounded-3xl p-6 flex flex-col items-center"
+          style={{
+            background: "var(--clay-surface, #fdf6e3)",
+            boxShadow: `
+              12px 12px 24px rgba(170, 160, 140, 0.25),
+              -8px -8px 20px rgba(255, 255, 255, 0.9),
+              inset 1px 1px 2px rgba(255, 255, 255, 0.5)
+            `,
+          }}
+        >
+          {/* Header Badge */}
+          <div
+            className={`
+              px-4 py-1.5 rounded-full text-sm font-semibold mb-4
+              ${isSpecial 
+                ? "bg-gradient-to-r from-blue-100 to-purple-100 text-purple-700" 
+                : "bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700"
+              }
+            `}
+            style={{
+              boxShadow: "inset 1px 1px 2px rgba(255,255,255,0.8), 2px 2px 4px rgba(0,0,0,0.05)",
+            }}
+          >
+            {isSpecial ? "✨ Cơ Hội Đặc Biệt" : "⚡ Sự Kiện Đặc Biệt"}
+          </div>
 
-          {/* Event Image */}
-          <div className="w-72 mb-6 rounded-lg overflow-hidden bg-white flex items-center justify-center">
+          {/* Event Image - 16:9 aspect ratio */}
+          <div
+            className="w-full rounded-2xl overflow-hidden mb-4"
+            style={{
+              aspectRatio: "16/9",
+              boxShadow: "inset 2px 2px 6px rgba(0,0,0,0.08), 4px 4px 12px rgba(170,160,140,0.15)",
+            }}
+          >
             {event.imageUrl ? (
               <img
                 src={event.imageUrl}
@@ -58,101 +95,140 @@ const EventPopup: React.FC<Props> = ({
                 className="object-cover w-full h-full"
               />
             ) : (
-              <div className="text-8xl text-yellow-600">🌪️</div>
+              <div 
+                className="w-full h-full flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)" }}
+              >
+                <span className="text-6xl">{isSpecial ? "🎯" : "🌪️"}</span>
+              </div>
             )}
           </div>
 
           {/* Event Name */}
-          <h3 className="text-4xl text-center mb-4 text-red-700">
+          <h3 
+            className="text-xl font-bold text-center mb-2 text-slate-700"
+            style={{ textShadow: "1px 1px 0 rgba(255,255,255,0.5)" }}
+          >
             {event.name}
           </h3>
 
-          {/* Event Description */}
+          {/* Event Description for Special Events */}
           {isSpecial && (
-            <div className="mb-4 text-center text-lg text-slate-600">
-              {event.entity === "Government" &&
-                "Nhà nước có cơ hội lựa chọn phe liên minh quốc tế"}
-              {event.entity === "Businesses" &&
-                "Doanh nghiệp có cơ hội đầu tư vào sản phẩm mới"}
-              {event.entity === "Workers" &&
-                "Người lao động có cơ hội khởi nghiệp"}
-              <br />
-            </div>
+            <p className="text-sm text-center text-slate-500 mb-4 px-2">
+              {event.entity === "Government" && "Nhà nước có cơ hội lựa chọn phe liên minh quốc tế"}
+              {event.entity === "Businesses" && "Doanh nghiệp có cơ hội đầu tư vào sản phẩm mới"}
+              {event.entity === "Workers" && "Người lao động có cơ hội khởi nghiệp"}
+            </p>
           )}
 
-          {/* Effects Preview */}
+          {/* Effects Display - Regular Events */}
           {!isSpecial && event.effects && (
-            <div className="mb-6 p-6 bg-yellow-50 rounded-xl shadow-[var(--clay-shadow-in)] w-full">
-              <div className="flex justify-center gap-4 text-sm">
+            <div
+              className="w-full rounded-xl p-4 mb-4"
+              style={{
+                background: "linear-gradient(135deg, #fef9c3 0%, #fef3c7 100%)",
+                boxShadow: "inset 2px 2px 4px rgba(255,255,255,0.6), inset -1px -1px 3px rgba(170,160,140,0.1)",
+              }}
+            >
+              <div className="flex justify-center gap-4 flex-wrap">
                 {Object.entries(getOriginalEffects(event.effects))
                   .filter(([, value]) => value !== 0)
                   .map(([entity, value]) => (
-                    <span key={entity} className={`text-red-600 text-[18px]`}>
-                      {entity === "Government" && "Nhà nước"}
-                      {entity === "Businesses" && "Doanh nghiệp"}
-                      {entity === "Workers" && "Người lao động"}:{" "}
-                      {value > 0 ? `+${value}` : value}
-                    </span>
+                    <div
+                      key={entity}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/60"
+                      style={{ boxShadow: "1px 1px 3px rgba(0,0,0,0.05)" }}
+                    >
+                      <span className="text-slate-600 font-medium text-sm">
+                        {ENTITY_NAMES[entity]}:
+                      </span>
+                      <span className={`font-bold text-sm ${value > 0 ? "text-green-600" : "text-red-600"}`}>
+                        {value > 0 ? `+${value}` : value}
+                      </span>
+                    </div>
                   ))}
               </div>
             </div>
           )}
 
-          {/* Possible Outcomes for Special Events */}
+          {/* Outcomes Display - Special Events */}
           {isSpecial && (
-            <div className="mb-6 p-6 bg-blue-50 rounded-xl shadow-[var(--clay-shadow-in)] w-full">
-              <div className="space-y-4">
-                <div className="flex justify-center gap-2 text-xl">
-                  <span className="text-green-600 font-semibold">
-                    Thành công :
-                  </span>
-                  {event.positiveEffects &&
-                    Object.entries(getOriginalEffects(event.positiveEffects))
-                      .filter(([, value]) => value !== 0)
-                      .map(([entity, value]) => (
-                        <span key={entity} className={`text-green-600`}>
-                          {entity === "Government" && "N"}
-                          {entity === "Businesses" && "D"}
-                          {entity === "Workers" && "L"}:{" "}
-                          {value > 0 ? `+${value}` : value}
-                        </span>
-                      ))}
-                </div>
-                <div className="flex justify-center gap-2 text-xl">
-                  <span className="text-red-600 font-semibold">Thất bại :</span>
-                  {event.negativeEffects &&
-                    Object.entries(getOriginalEffects(event.negativeEffects))
-                      .filter(([, value]) => value !== 0)
-                      .map(([entity, value]) => (
-                        <span key={entity} className={`text-red-600`}>
-                          {entity === "Government" && "N"}
-                          {entity === "Businesses" && "D"}
-                          {entity === "Workers" && "L"}:{" "}
-                          {value > 0 ? `+${value}` : value}
-                        </span>
-                      ))}
-                </div>
+            <div
+              className="w-full rounded-xl p-4 mb-4 space-y-3"
+              style={{
+                background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)",
+                boxShadow: "inset 2px 2px 4px rgba(255,255,255,0.6), inset -1px -1px 3px rgba(170,160,140,0.1)",
+              }}
+            >
+              {/* Success Outcome */}
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                <span className="text-green-600 font-semibold text-sm">✓ Thành công:</span>
+                {event.positiveEffects &&
+                  Object.entries(getOriginalEffects(event.positiveEffects))
+                    .filter(([, value]) => value !== 0)
+                    .map(([entity, value]) => (
+                      <span
+                        key={entity}
+                        className="px-2 py-0.5 rounded bg-green-100 text-green-700 text-sm font-medium"
+                      >
+                        {ENTITY_LABELS[entity]}: {value > 0 ? `+${value}` : value}
+                      </span>
+                    ))}
+              </div>
+              
+              {/* Failure Outcome */}
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                <span className="text-red-600 font-semibold text-sm">✗ Thất bại:</span>
+                {event.negativeEffects &&
+                  Object.entries(getOriginalEffects(event.negativeEffects))
+                    .filter(([, value]) => value !== 0)
+                    .map(([entity, value]) => (
+                      <span
+                        key={entity}
+                        className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-sm font-medium"
+                      >
+                        {ENTITY_LABELS[entity]}: {value > 0 ? `+${value}` : value}
+                      </span>
+                    ))}
               </div>
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-4">
+          {/* Action Buttons - Claymorphism style */}
+          <div className="flex gap-3 w-full">
             {isSpecial ? (
               <>
-                <button onClick={onSkip || onContinue} className="skip-button">
+                <button
+                  onClick={onSkip || onContinue}
+                  className="flex-1 py-3 px-4 rounded-xl font-semibold text-slate-600 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)",
+                    boxShadow: "4px 4px 8px rgba(170,160,140,0.2), -2px -2px 6px rgba(255,255,255,0.8)",
+                  }}
+                >
                   Bỏ qua
                 </button>
                 <button
                   onClick={onExecute || onContinue}
-                  className="execute-button"
+                  className="flex-1 py-3 px-4 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                    boxShadow: "4px 4px 8px rgba(139,92,246,0.3), -2px -2px 6px rgba(255,255,255,0.2)",
+                  }}
                 >
                   Thực hiện
                 </button>
               </>
             ) : (
-              <button onClick={onContinue} className="next-button">
-                Chấp nhận !
+              <button
+                onClick={onContinue}
+                className="flex-1 py-3 px-6 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                style={{
+                  background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                  boxShadow: "4px 4px 8px rgba(245,158,11,0.3), -2px -2px 6px rgba(255,255,255,0.2)",
+                }}
+              >
+                Chấp nhận!
               </button>
             )}
           </div>
