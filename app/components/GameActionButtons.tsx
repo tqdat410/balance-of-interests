@@ -98,6 +98,7 @@ const GameActionButtons: React.FC<Props> = ({
               group relative
               flex flex-col items-center
               w-[160px] md:w-[180px] lg:w-[200px]
+              aspect-[9/16]
               rounded-2xl
               transition-all duration-300 ease-out
               hover:scale-105 hover:z-10
@@ -105,6 +106,7 @@ const GameActionButtons: React.FC<Props> = ({
               bg-transparent
               border-none
               p-0
+              overflow-hidden
               ${
                 clickedAction === action.name
                   ? "opacity-0 scale-150 transition-opacity duration-500"
@@ -113,7 +115,7 @@ const GameActionButtons: React.FC<Props> = ({
             `}
           >
             {/* Image Layer - Aspect 9:16 */}
-            <div className="w-full aspect-[9/16] relative rounded-2xl overflow-hidden shadow-sm">
+            <div className="absolute inset-0 z-0">
               <img
                 src={action.imageUrl || DEFAULT_IMG}
                 alt={action.name}
@@ -127,26 +129,26 @@ const GameActionButtons: React.FC<Props> = ({
                   {action.name}
                 </span>
               </div>
-            </div>
 
-            {/* Effects Layer - Below Image */}
-            <div className="w-full mt-3 flex flex-col gap-1 items-center">
-               <div className="flex flex-wrap justify-center gap-1.5">
-                {(Object.entries(modifiedEffects) as [Entity, number][]).map(
-                  ([e, value]) =>
-                    value !== 0 ? (
-                      <div
-                        key={e}
-                        className="bg-white/50 px-2 py-0.5 rounded-md flex items-center text-xs font-bold"
-                      >
-                        <span className="text-slate-600 mr-1">{LABELS[e]}:</span>
-                        <span className={effectColor(entity, value)}>
-                          {Math.abs(value)}
-                        </span>
-                      </div>
-                    ) : null
-                )}
-              </div>
+               {/* Effects Layer - Bottom Overlay */}
+               <div className="absolute bottom-0 left-0 right-0 z-10 p-2 pb-3 flex flex-col gap-1 items-center bg-gradient-to-t from-black/60 to-transparent">
+                  <div className="flex flex-wrap justify-center gap-1.5">
+                   {(Object.entries(modifiedEffects) as [Entity, number][]).map(
+                     ([e, value]) =>
+                       value !== 0 ? (
+                         <div
+                           key={e}
+                           className="bg-white/80 px-2 py-0.5 rounded-md flex items-center text-xs font-bold backdrop-blur-sm"
+                         >
+                           <span className="text-slate-700 mr-1">{LABELS[e]}:</span>
+                           <span className={effectColor(entity, value)}>
+                             {Math.abs(value)}
+                           </span>
+                         </div>
+                       ) : null
+                   )}
+                 </div>
+               </div>
             </div>
           </button>
         );
