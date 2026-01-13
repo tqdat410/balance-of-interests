@@ -1,7 +1,7 @@
 :root {
   /* Warm Clay Color Palette */
-  --clay-bg: #fdf6e3;      /* Creamy background base */
-  --clay-surface: #fefcf5; /* Lighter surface for cards */
+  --clay-bg: #ffffff;      /* Pure White */
+  --clay-surface: #ffffff; /* Pure white for cards to pop against off-white bg */
   --clay-primary: #f59e0b; /* Amber 500 */
   --clay-accent: #c43f3f;  /* Red */
   --clay-success: #059669; /* Emerald */
