@@ -86,17 +86,18 @@ export default function BalanceOfInterests() {
     );
   }
 
-  // Game playing - min-h-screen with safe padding for laptop screens
+  // Game playing - fixed viewport, no scroll, content must fit
+  // Uses h-dvh (dynamic viewport height) with h-screen fallback for browser compatibility
   return (
-    <div className="min-h-screen w-full bg-[var(--clay-bg)] relative overflow-auto">
+    <div className="h-screen h-[100dvh] w-full bg-[var(--clay-bg)] relative overflow-hidden">
       {/* Decorative Circles for Game Screen - responsive sizing */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute -top-20 -left-20 w-96 h-96 xl:w-[500px] xl:h-[500px] bg-blue-200/20 rounded-full blur-3xl" />
         <div className="absolute -bottom-20 -right-20 w-96 h-96 xl:w-[500px] xl:h-[500px] bg-amber-200/20 rounded-full blur-3xl" />
       </div>
       
-      {/* Add vertical padding for safe area on all screens */}
-      <div className="relative z-10 w-full min-h-screen py-3 md:py-4 xl:py-6">
+      {/* Content container - uses full height with safe padding */}
+      <div className="relative z-10 w-full h-full flex flex-col py-2 md:py-3 xl:py-4">
         <GamePlayArea
           history={history}
           bars={bars}
