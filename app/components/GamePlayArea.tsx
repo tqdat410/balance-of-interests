@@ -48,8 +48,9 @@ export default function GamePlayArea({
   return (
     <div className="w-full h-full flex flex-col">
       {/* Desktop Layout */}
-      <div className="hidden md:flex w-full h-full flex-col p-2 pt-1 gap-1">
-        <div className="w-full max-w-6xl mx-auto">
+      <div className="hidden md:flex w-full h-full flex-col p-2 pt-1 items-center justify-start">
+        {/* Chart Section */}
+        <div className="w-full max-w-6xl mx-auto flex-shrink-0">
           <StatusLineChart
             history={history}
             currentBars={bars}
@@ -58,33 +59,35 @@ export default function GamePlayArea({
           />
         </div>
 
-        <div className="flex-1 flex gap-4 max-w-6xl mx-auto w-full overflow-hidden">
-          <div className="flex-1 flex flex-col h-full justify-start">
-            {currentEntity && (
-              <>
-                <div className="text-center mb-1">
-                  <span className="text-slate-500 text-sm">
-                    Lượt {turnIndex + 1}/{turnOrder.length} -{" "}
-                  </span>
-                  <span className="text-base font-semibold text-purple-600">
-                    {currentEntity === "Government" && "Nhà Nước"}
-                    {currentEntity === "Businesses" && "Doanh Nghiệp"}
-                    {currentEntity === "Workers" && "Người Lao Động"}
-                  </span>
-                </div>
-                <div className="flex-1 flex items-start justify-center pt-2">
-                  <GameActionButtons
-                    actions={availableActions}
-                    handleAction={handleAction}
-                    eventMessage={eventMessage}
-                    entity={currentEntity}
-                    onActionComplete={handleActionComplete}
-                    round={round}
-                  />
-                </div>
-              </>
-            )}
-          </div>
+        {/* Action Area - Compact below chart */}
+        <div className="w-full max-w-6xl mx-auto mt-2 flex flex-col items-center">
+          {currentEntity && (
+            <>
+              {/* Info Text */}
+              <div className="text-center mb-1">
+                <span className="text-slate-500 text-sm">
+                  Lượt {turnIndex + 1}/{turnOrder.length} -{" "}
+                </span>
+                <span className="text-base font-semibold text-purple-600">
+                  {currentEntity === "Government" && "Nhà Nước"}
+                  {currentEntity === "Businesses" && "Doanh Nghiệp"}
+                  {currentEntity === "Workers" && "Người Lao Động"}
+                </span>
+              </div>
+              
+              {/* Cards - Centered tightly below text */}
+              <div className="w-full flex justify-center pt-1">
+                <GameActionButtons
+                  actions={availableActions}
+                  handleAction={handleAction}
+                  eventMessage={eventMessage}
+                  entity={currentEntity}
+                  onActionComplete={handleActionComplete}
+                  round={round}
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
 
