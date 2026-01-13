@@ -118,72 +118,52 @@ const GameActionButtons: React.FC<Props> = ({
   );
 
   return (
-    <div className="action-buttons-container mobile-actions w-full flex flex-row flex-wrap justify-center gap-4">
+    <div className="action-buttons-container mobile-actions w-full flex flex-row flex-wrap justify-center gap-6 items-center">
       {actions.map((action, idx) => (
         <button
           key={`${action.name}-${idx}`}
           onClick={() => memoizedHandleAction(action)}
           disabled={!!eventMessage || clickedAction === action.name}
+          style={{
+            animationDelay: `${idx * 0.15}s`, // Staggered idle animation
+          }}
           className={`
-            clay-button flex flex-col items-center px-4 py-3 rounded-2xl min-w-[140px] max-w-[180px]
-            transition-all duration-200 ease-out
-            hover:scale-102 hover:-translate-y-1
-            ${roleGlassClass[entity]}
-            ${isAnimating && !clickedAction ? "animate-fadeIn" : ""}
+            relative
+            w-[180px] h-[320px] 
+            min-w-[135px] min-h-[240px]
+            max-w-[180px] max-h-[320px]
+            aspect-[9/16]
+            rounded-2xl
+            overflow-hidden
+            transition-all duration-300 ease-out
+            hover:scale-105 hover:z-10
+            shadow-[0_10px_20px_rgba(0,0,0,0.15)]
+            animate-idleFloat
+            bg-transparent
+            border-none
+            p-0
             ${
               clickedAction === action.name
-                ? "opacity-60 scale-95 cursor-not-allowed"
+                ? "opacity-0 scale-150 transition-opacity duration-500" // Disappear effect on click
                 : ""
             }
           `}
         >
-          {/* Ảnh vuông */}
-          <div className="image-container w-36 h-36 min-w-[130px] min-h-[130px] max-w-[162px] max-h-[162px] rounded-2xl mb-2 flex items-center justify-center overflow-hidden bg-slate-600 flex-shrink-0">
-            {action.imageUrl ? (
-              <img
-                src={action.imageUrl}
-                alt={action.name}
-                className="object-cover w-full h-full"
-              />
-            ) : (
-              <img
-                src={DEFAULT_IMG}
-                alt="Placeholder"
-                className="object-cover w-full h-full"
-              />
-            )}
-          </div>
-          <div
-            className={`action-name text-xl text-center mb-1 flex-1 flex items-center justify-center w-full min-h-[42px] ${actionNameColor[entity]}`}
-          >
-            {action.name}
-          </div>
-          {/* Chỉ số luôn ở đáy, margin-top auto để đẩy xuống */}
-          <div className="effects flex flex-row flex-nowrap justify-center gap-1 w-full mt-auto">
-            {(
-              Object.entries(getModifiedEffects(action.effects, false)) as [
-                Entity,
-                number
-              ][]
-            ).map(([e, value]) =>
-              value !== 0 ? (
-                <span
-                  key={e}
-                  className={`text-2xl px-1 rounded-full flex items-center ${effectColor(
-                    entity,
-                    value
-                  )}`}
-                >
-                  {LABELS[e]}
-                  {value > 0 ? (
-                    <span className="ml-0.5">+{value}</span>
-                  ) : (
-                    <span className="ml-0.5">-{Math.abs(value)}</span>
-                  )}
-                </span>
-              ) : null
-            )}
-          </div>
+          {action.imageUrl ? (
+            <img
+              src={action.imageUrl}
+              alt={action.name}
+              className="object-cover w-full h-full rounded-2xl pointer-events-none select-none"
+              draggable={false}
+            />
+          ) : (
+            <img
+              src={DEFAULT_IMG}
+              alt="Placeholder"
+              className="object-cover w-full h-full rounded-2xl pointer-events-none select-none"
+              draggable={false}
+            />
+          )}
         </button>
       ))}
     </div>

@@ -298,6 +298,23 @@ button:disabled,
   animation: warningPulse 2s ease-in-out infinite;
 }
 
+/* Idle Float Animation for Cards */
+@keyframes idleFloat {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-idleFloat {
+  animation: idleFloat 3s ease-in-out infinite;
+}
+
 .glass3d {
   --filter-glass3d: blur(5px) brightness(2) saturate(0);
   --color-glass3d: rgba(251, 255, 0, 0.2);
