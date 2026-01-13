@@ -86,7 +86,7 @@ const EventPopup: React.FC<Props> = ({
             {/* Overlay gradient at bottom for text */}
             <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
             
-            {/* Event Name - Overlaid on image bottom */}
+            {/* Event Name with Description - Overlaid on image bottom */}
             <div className="absolute inset-x-0 bottom-0 p-4 xl:p-6">
               <div
                 className={`
@@ -101,24 +101,28 @@ const EventPopup: React.FC<Props> = ({
               </div>
               <h3 className="text-2xl xl:text-3xl font-bold text-white drop-shadow-lg">
                 {event.name}
+                {isSpecial && (
+                  <span className="text-lg xl:text-xl font-normal text-white/80">
+                    {" - "}
+                    {event.entity === "Government" && "Lựa chọn liên minh quốc tế"}
+                    {event.entity === "Businesses" && "Đầu tư sản phẩm mới"}
+                    {event.entity === "Workers" && "Cơ hội khởi nghiệp"}
+                  </span>
+                )}
               </h3>
             </div>
           </div>
 
           {/* Bottom Bar - Content + Buttons horizontal */}
           <div className="flex items-center gap-4 p-4 xl:p-5">
-            {/* Left: Effects/Description */}
+            {/* Left: Effects */}
             <div className="flex-1 flex items-center gap-3 flex-wrap">
-              {/* Description for Special Events - with success/failure text */}
+              {/* Outcomes indicator for Special Events */}
               {isSpecial && (
                 <span className="text-sm text-slate-600">
-                  {event.entity === "Government" && "Lựa chọn liên minh quốc tế"}
-                  {event.entity === "Businesses" && "Đầu tư sản phẩm mới"}
-                  {event.entity === "Workers" && "Cơ hội khởi nghiệp"}
-                  {" • "}
-                  <span className="text-green-600 font-medium">Thành công</span>
+                  <span className="text-green-600 font-medium">✓ Thành công</span>
                   {" / "}
-                  <span className="text-red-600 font-medium">Thất bại</span>
+                  <span className="text-red-600 font-medium">✗ Thất bại</span>
                 </span>
               )}
 
