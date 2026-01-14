@@ -20,8 +20,26 @@ const LABELS: Record<Entity, string> = {
 
 const DEFAULT_IMG = "/actions/placeholder.png";
 
-const effectColor = (role: Entity, value: number) => {
-  return value > 0 ? "text-green-600 font-bold" : value < 0 ? "text-red-600 font-bold" : "text-gray-500 font-bold";
+// Custom color helper for claymorphism badges
+const getEffectStyles = (value: number) => {
+  if (value > 0) return {
+    bg: "bg-green-100",
+    text: "text-green-700", 
+    border: "border-green-200",
+    shadow: "shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),inset_-2px_-2px_4px_rgba(0,0,0,0.05),2px_2px_5px_rgba(0,0,0,0.05)]"
+  };
+  if (value < 0) return {
+    bg: "bg-red-100", 
+    text: "text-red-700",
+    border: "border-red-200",
+    shadow: "shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),inset_-2px_-2px_4px_rgba(0,0,0,0.05),2px_2px_5px_rgba(0,0,0,0.05)]"
+  };
+  return {
+    bg: "bg-gray-100",
+    text: "text-gray-600",
+    border: "border-gray-200", 
+    shadow: "shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),inset_-2px_-2px_4px_rgba(0,0,0,0.05),2px_2px_5px_rgba(0,0,0,0.05)]"
+  };
 };
 
 const GameActionButtons: React.FC<Props> = ({
@@ -79,76 +97,93 @@ const GameActionButtons: React.FC<Props> = ({
   );
 
   return (
-    <div className="action-buttons-container w-full flex flex-row flex-wrap justify-center gap-4 xl:gap-6 2xl:gap-8 items-center">
+    <div className="action-buttons-container w-full flex flex-row flex-wrap justify-center gap-6 xl:gap-10 items-start mt-4">
       {actions.map((action, idx) => {
         const modifiedEffects = getModifiedEffects(action.effects);
         return (
           <button
             key={`${action.name}-${idx}`}
             onClick={() => memoizedHandleAction(action)}
-            disabled={!!eventMessage || clickedAction === action.name}
+            disabled={!!eventMessage || clickedAction !== null}
             style={
               {
-                "--idle-scale": 1.02 + Math.random() * 0.04,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${5 + Math.random() * 3}s`,
+                "--idle-scale": 1.02 + ((idx % 4) * 0.01),
+                animationDelay: `${(idx * 0.5) % 3}s`,
+                animationDuration: `${5 + (idx * 0.7) % 3}s`,
               } as React.CSSProperties
             }
             className={`
               group relative
               flex flex-col items-center
-              h-[45vh] max-h-[400px] min-h-[200px]
-              aspect-[9/16]
-              rounded-2xl xl:rounded-3xl
+              w-[24vh] max-w-[220px] min-w-[140px]
               transition-all duration-300 ease-out
-              hover:scale-105 hover:z-10
               animate-idleZoom
               bg-transparent
               border-none
               p-0
-              overflow-hidden
               ${
                 clickedAction === action.name
-                  ? "opacity-0 scale-150 transition-opacity duration-500"
-                  : ""
+                  ? "animate-cardSelectExit pointer-events-none"
+                  : clickedAction !== null
+                  ? "opacity-50 scale-95 grayscale cursor-not-allowed"
+                  : "hover:-translate-y-2"
               }
             `}
           >
-            {/* Image Layer - Aspect 9:16 */}
-            <div className="absolute inset-0 z-0">
+            {/* Image Container - Aspect 9:16 with Clay Effect - NO Border/Shadow as requested */}
+            <div 
+              className="relative w-full aspect-[9/16] rounded-3xl overflow-hidden mb-1 transition-transform duration-300"
+              style={{
+                // Removed border and shadow
+                boxShadow: "none",
+                border: "none"
+              }}
+            >
               <img
                 src={action.imageUrl || DEFAULT_IMG}
                 alt={action.name}
-                className="object-cover w-full h-full pointer-events-none select-none"
+                className="object-cover w-full h-full pointer-events-none select-none transition-transform duration-500"
                 draggable={false}
               />
+              {/* Gloss Overlay - kept for subtle depth */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-30 pointer-events-none" />
               
-              {/* Hover Name Layer - Centered over Image */}
-              <div className="absolute inset-0 z-20 flex items-center justify-center p-2 xl:p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]">
-                <span className="text-white font-bold text-lg xl:text-xl 2xl:text-2xl text-center drop-shadow-md">
-                  {action.name}
-                </span>
+              {/* Name Overlay on Hover - Inside Image area for better visibility when name is hidden outside */}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px]">
+                 <span className="text-white font-bold text-xl text-center px-2 drop-shadow-md transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                   {action.name}
+                 </span>
               </div>
+            </div>
 
-               {/* Effects Layer - Bottom Overlay */}
-               <div className="absolute bottom-0 left-0 right-0 z-10 p-2 pb-3 xl:p-3 xl:pb-4 flex flex-col gap-1 items-center bg-gradient-to-t from-black/60 to-transparent">
-                  <div className="flex flex-wrap justify-center gap-1.5 xl:gap-2">
-                   {(Object.entries(modifiedEffects) as [Entity, number][]).map(
-                     ([e, value]) =>
-                       value !== 0 ? (
-                         <div
-                           key={e}
-                           className="bg-white/80 px-2 py-0.5 xl:px-3 xl:py-1 rounded-md xl:rounded-lg flex items-center text-xs xl:text-sm font-bold backdrop-blur-sm"
-                         >
-                           <span className="text-slate-700 mr-1">{LABELS[e]}:</span>
-                           <span className={effectColor(entity, value)}>
-                             {Math.abs(value)}
-                           </span>
-                         </div>
-                       ) : null
-                   )}
-                 </div>
-               </div>
+            {/* Content Container - External - Name Removed from here, Effects Only */}
+            <div className="flex flex-col items-center w-full gap-2">
+              <div className="flex flex-wrap justify-center gap-2 w-full">
+                {(Object.entries(modifiedEffects) as [Entity, number][]).map(
+                  ([e, value]) => {
+                    if (value === 0) return null;
+                    const styles = getEffectStyles(value);
+                    return (
+                      <div
+                        key={e}
+                        className={`
+                          flex items-center gap-1.5 px-3 py-1.5 rounded-xl border
+                          ${styles.bg} ${styles.border} ${styles.shadow}
+                          transition-transform hover:scale-105
+                        `}
+                      >
+                        <span className="text-xs xl:text-sm font-bold text-slate-600">
+                          {LABELS[e]}:
+                        </span>
+                        <span className={`text-sm xl:text-base font-black ${styles.text}`}>
+                          {/* Removed +/- signs */}
+                          {Math.abs(value)}
+                        </span>
+                      </div>
+                    );
+                  }
+                )}
+            </div>
             </div>
           </button>
         );

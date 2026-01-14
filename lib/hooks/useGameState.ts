@@ -45,6 +45,8 @@ export function useGameState() {
   const [showNameInput, setShowNameInput] = useState(true);
   const [gameStartTime, setGameStartTime] = useState<number>(0);
   const [totalActions, setTotalActions] = useState<number>(0);
+  const [completedRound, setCompletedRound] = useState<number>(0);
+  const [isProcessingTurn, setIsProcessingTurn] = useState(false);
 
   const submitScoreRef = useRef(false);
 
@@ -96,7 +98,7 @@ export function useGameState() {
       .join("");
   };
 
-  const submitScore = async (resultState: "gameOver" | "victory") => {
+  const submitScore = async (resultState: "gameOver" | "victory", currentCompletedRound: number) => {
     if (submitScoreRef.current) return;
     submitScoreRef.current = true;
 
@@ -108,9 +110,13 @@ export function useGameState() {
         ? "HARMONY"
         : "SURVIVAL";
 
+    // For victory, use 30 (completed all rounds)
+    // For gameOver, use completedRound (rounds that were fully passed)
+    const finalRound = resultState === "victory" ? 30 : currentCompletedRound;
+
     const gameData = {
       game_session_id: gameSessionId,
-      final_round: round,
+      final_round: finalRound,
       gov_bar: bars.Government,
       bus_bar: bars.Businesses,
       wor_bar: bars.Workers,
@@ -124,7 +130,7 @@ export function useGameState() {
       session_id: sessionId,
       game_session_id: gameSessionId,
       name: playerName.trim(),
-      final_round: round,
+      final_round: finalRound,
       total_action: totalActions,
       gov_bar: bars.Government,
       bus_bar: bars.Businesses,
@@ -178,13 +184,13 @@ export function useGameState() {
     }
   };
 
-  const startEndingTransition = (targetState: "gameOver" | "victory") => {
+  const startEndingTransition = (targetState: "gameOver" | "victory", currentCompletedRound: number) => {
     setMenuFadingOut(true);
     setTimeout(() => {
       setGameState(targetState);
       setMenuFadingOut(false);
       setEndingFadingIn(true);
-      submitScore(targetState);
+      submitScore(targetState, currentCompletedRound);
       if (typeof window !== "undefined") {
         window.dispatchEvent(
           new CustomEvent("gameStateChange", { detail: { state: targetState } })
@@ -193,18 +199,19 @@ export function useGameState() {
     }, 1000);
   };
 
-  const checkGameOver = (currentBars: Bars): boolean => {
+  const checkGameOver = (currentBars: Bars, currentCompletedRound: number): boolean => {
     if (
       currentBars.Government <= 0 ||
       currentBars.Businesses <= 0 ||
       currentBars.Workers <= 0
     ) {
       setEndingType("survival");
-      startEndingTransition("gameOver");
+      startEndingTransition("gameOver", currentCompletedRound);
       return true;
     }
     
-    if (round >= 30 && turnIndex >= turnOrder.length - 1) {
+    // Victory: only when round 30 is FULLY completed (all 3 turns done)
+    if (currentCompletedRound >= 30) {
       if (
         currentBars.Government === currentBars.Businesses &&
         currentBars.Businesses === currentBars.Workers
@@ -213,7 +220,7 @@ export function useGameState() {
       } else {
         setEndingType("survival");
       }
-      startEndingTransition("victory");
+      startEndingTransition("victory", 30);
       return true;
     }
     return false;
@@ -255,9 +262,8 @@ export function useGameState() {
     setStartButtonAnimating(true);
     setStartClickAnimation("buttonClick");
 
-    setTimeout(() => setStartClickAnimation("actionPulse"), 300);
-    setTimeout(() => setStartClickAnimation("actionGlow"), 800);
-    setTimeout(() => setMenuFadingOut(true), 1000);
+    // Immediate feedback, then fade out quickly
+    setTimeout(() => setMenuFadingOut(true), 100);
 
     setTimeout(() => {
       setGameState("playing");
@@ -270,6 +276,8 @@ export function useGameState() {
       setShowEventPopup(false);
       setGameStartTime(Date.now());
       setTotalActions(0);
+      setCompletedRound(0);
+      setIsProcessingTurn(false);
       submitScoreRef.current = false;
       startNewRound(1);
 
@@ -279,13 +287,14 @@ export function useGameState() {
         );
       }
 
+      // Reset animation states shortly after transition
       setTimeout(() => {
         setStartButtonAnimating(false);
         setStartClickAnimation(null);
         setMenuFadingOut(false);
         setEndingFadingIn(false);
       }, 500);
-    }, 2000);
+    }, 600); // 600ms total transition time for snappy feel
   };
 
   const validateAndStartGame = () => {
@@ -332,12 +341,17 @@ export function useGameState() {
           currentEvent.entity || "Event"
         );
       }
+      // Count special event execute as an action
+      setTotalActions((prev) => prev + 1);
     }
     setShowEventPopup(false);
     setCurrentEvent(null);
   };
 
   const handleAction = (action: GameAction) => {
+    if (isProcessingTurn) return;
+    setIsProcessingTurn(true);
+
     const modifiedEffects = { ...action.effects };
     if (round >= 11 && round <= 20) {
       Object.keys(modifiedEffects).forEach((key) => {
@@ -358,6 +372,7 @@ export function useGameState() {
 
   const handleActionComplete = useCallback(() => {
     setTimeout(() => {
+      setIsProcessingTurn(false);
       if (turnIndex < turnOrder.length - 1) {
         const nextIndex = turnIndex + 1;
         const nextEntity = turnOrder[nextIndex];
@@ -371,6 +386,8 @@ export function useGameState() {
           );
         }
       } else {
+        // All 3 turns completed - mark this round as completed
+        setCompletedRound(round);
         if (round < 30) {
           setRound((r) => r + 1);
           startNewRound(round + 1);
@@ -391,9 +408,9 @@ export function useGameState() {
 
   useEffect(() => {
     if (gameState === "playing" && currentEntity) {
-      checkGameOver(bars);
+      checkGameOver(bars, completedRound);
     }
-  }, [bars, round, turnIndex, gameState, currentEntity]);
+  }, [bars, round, turnIndex, gameState, currentEntity, completedRound]);
 
   // --- Memos ---
 

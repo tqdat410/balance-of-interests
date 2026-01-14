@@ -42,24 +42,23 @@ const ENTITY_LABELS: Record<Entity, string> = {
   Workers: "L",
 };
 
-// Initial values
+// Initial values - Must match Game Config (20)
 const INITIAL_BARS: Bars = {
-  Government: 25,
-  Businesses: 25,
-  Workers: 25,
+  Government: 20,
+  Businesses: 20,
+  Workers: 20,
 };
 
 // Total turns in game: 30 rounds × 3 turns = 90 turns
 const TOTAL_TURNS = 90;
-// Pixels per data point for horizontal spacing (reduced from 35 to 25 for ~30% less width)
+// Pixels per data point for horizontal spacing
 const PIXELS_PER_POINT = 25;
 // Fixed chart width to show all 90 turns upfront
 const CHART_WIDTH = TOTAL_TURNS * PIXELS_PER_POINT;
 // Y-axis width for sticky positioning
 const Y_AXIS_WIDTH = 36;
 // Chart height - responsive values for different screen sizes
-// Base: 220px for laptops, scales up for larger screens
-const CHART_HEIGHT = 220; // Base height, CSS will override for xl/2xl
+const CHART_HEIGHT = 220;
 // Y-axis display range (0-60 for display, actual values 0-50)
 const Y_MAX = 60;
 // Y-axis ticks (do not show 60)
@@ -67,8 +66,39 @@ const Y_TICKS = [0, 10, 20, 30, 40, 50];
 
 // Layout Constants for precise alignment
 const MARGIN_TOP = 20;
-const MARGIN_BOTTOM = 10; // Reduced margin, as XAxis height provides spacing
-const X_AXIS_HEIGHT = 30; // Explicit height reserved for X-Axis
+const MARGIN_BOTTOM = 10;
+const X_AXIS_HEIGHT = 30;
+
+// Custom Dot Component for Clay effect
+const ClayDot = (props: any) => {
+  const { cx, cy, stroke, payload } = props;
+  const entityName = Object.keys(ENTITY_COLORS).find(
+    key => ENTITY_COLORS[key as Entity] === stroke
+  );
+  
+  if (!cx || !cy) return null;
+
+  return (
+    <g>
+      <circle
+        cx={cx}
+        cy={cy}
+        r={6}
+        fill={`url(#grad-${entityName})`}
+        filter="url(#clay-dot-shadow)"
+        stroke="none"
+      />
+      {/* Small highlight for extra gloss */}
+      <circle
+        cx={cx - 2}
+        cy={cy - 2}
+        r={1.5}
+        fill="white"
+        fillOpacity={0.4}
+      />
+    </g>
+  );
+};
 
 const StatusLineChart: React.FC<Props> = ({
   history,
@@ -111,28 +141,21 @@ const StatusLineChart: React.FC<Props> = ({
     // Start with initial values at position 0
     const currentValues = { ...INITIAL_BARS };
 
+    // Always start with Start point at x=0
     data.push({
       x: 0,
-      label: "Bắt đầu",
+      label: "Start",
       ...currentValues,
       round: 0,
       turn: 0,
     });
 
-    // Process history to build timeline
+    let xCounter = 0;
     let lastRound = 0;
     let turnInRound = 0;
 
     history.forEach((entry, index) => {
-      const isNewRound = entry.round !== lastRound;
-      if (isNewRound) {
-        lastRound = entry.round;
-        turnInRound = 1;
-      } else {
-        turnInRound++;
-      }
-
-      // Apply effects - clamp to actual game range 0-50
+      // Update values based on effects
       Object.entries(entry.effects).forEach(([entity, value]) => {
         if (entity in currentValues) {
           currentValues[entity as Entity] = Math.max(
@@ -142,35 +165,75 @@ const StatusLineChart: React.FC<Props> = ({
         }
       });
 
-      data.push({
-        x: index + 1,
-        label: `Vòng ${entry.round}, Lượt ${turnInRound}`,
-        ...currentValues,
-        round: entry.round,
-        turn: turnInRound,
-      });
+      // Robust Event Detection
+      const isEvent = 
+        entry.entity === "Event" || 
+        entry.action.startsWith("Sự kiện") || 
+        entry.action.startsWith("Cơ hội");
+
+      // X-Axis Logic
+      if (isEvent) {
+         // For events, we advance X if executed (has effect)
+         const hasEffect = Object.values(entry.effects).some((v) => v !== 0);
+         if (hasEffect) {
+           xCounter++;
+         }
+      } else {
+         // Regular Turn
+         const prevEntry = history[index - 1];
+         const prevIsEvent = prevEntry && (
+           prevEntry.entity === "Event" || 
+           prevEntry.action.startsWith("Sự kiện") || 
+           prevEntry.action.startsWith("Cơ hội")
+         );
+         const prevWasExecEvent =
+           prevIsEvent &&
+           Object.values(prevEntry.effects).some((v) => v !== 0);
+
+         // Advance X only if NOT following an executed event
+         if (!prevWasExecEvent) {
+           xCounter++;
+         }
+      }
+
+      // Round/Turn Calculation
+      if (entry.round !== lastRound) {
+        lastRound = entry.round;
+        turnInRound = 1;
+      } else {
+        if (!isEvent) {
+           turnInRound++;
+        }
+      }
+
+      // Push Data - Only if X advanced or we are updating an existing X (Event+Turn case)
+      // Note: If skipped event, xCounter didn't change, we effectively don't push? 
+      // Actually, if xCounter didn't change for a Regular Turn (after event), we DO want to push/update.
+      
+      if (isEvent) {
+         const hasEffect = Object.values(entry.effects).some((v) => v !== 0);
+         if (hasEffect) {
+            data.push({
+              x: xCounter,
+              label: `Sự kiện V${entry.round}`,
+              ...currentValues,
+              round: entry.round,
+              turn: 0,
+            });
+         }
+      } else {
+         data.push({
+            x: xCounter,
+            label: `R${entry.round}.${turnInRound}`,
+            ...currentValues,
+            round: entry.round,
+            turn: turnInRound,
+         });
+      }
     });
 
-    // Add current state if different
-    if (data.length > 0) {
-      const last = data[data.length - 1];
-      if (
-        last.Government !== currentBars.Government ||
-        last.Businesses !== currentBars.Businesses ||
-        last.Workers !== currentBars.Workers
-      ) {
-        data.push({
-          x: data.length,
-          label: `Vòng ${currentRound}, Lượt ${currentTurnIndex + 1}`,
-          ...currentBars,
-          round: currentRound,
-          turn: currentTurnIndex + 1,
-        });
-      }
-    }
-
     return data;
-  }, [history, currentBars, currentRound, currentTurnIndex]);
+  }, [history]); // Removed currentBars dependency as we rely solely on history now
 
   // Smart auto-scroll: keep current data point visible, not jump to end
   useEffect(() => {
@@ -232,21 +295,32 @@ const StatusLineChart: React.FC<Props> = ({
     if (active && payload && payload.length && payload[0]?.value !== null) {
       return (
         <div
-          className="px-3 py-2 text-xs rounded-xl"
+          className="px-4 py-3 text-sm rounded-2xl animate-in zoom-in-95 duration-200"
           style={{
-            background: "rgba(253, 246, 227, 0.95)",
-            boxShadow: "4px 4px 8px rgba(170, 160, 140, 0.2), -4px -4px 8px rgba(255, 255, 255, 0.9)",
-            border: "2px solid rgba(170, 160, 140, 0.1)",
+            background: "rgba(255, 255, 255, 0.9)",
+            backdropFilter: "blur(8px)",
+            boxShadow: "6px 6px 12px rgba(163, 177, 198, 0.3), -6px -6px 12px rgba(255, 255, 255, 1)",
+            border: "1px solid rgba(255,255,255,0.6)"
           }}
         >
-          <p className="font-semibold text-slate-600 mb-1">
+          <p className="font-bold text-slate-700 mb-2 border-b border-slate-200 pb-1">
             {payload[0]?.payload?.label}
           </p>
-          {payload.map((entry, index) => (
-            <p key={index} style={{ color: entry.color }} className="font-medium">
-              {ENTITY_LABELS[entry.name as Entity]}: {entry.value}
-            </p>
-          ))}
+          <div className="flex flex-col gap-1">
+            {payload.map((entry, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <div 
+                  className="w-3 h-3 rounded-full" 
+                  style={{ 
+                    background: entry.color,
+                    boxShadow: "inset 1px 1px 2px rgba(255,255,255,0.8), 1px 1px 2px rgba(0,0,0,0.1)" 
+                  }}
+                />
+                <span className="font-bold text-slate-600 w-6">{ENTITY_LABELS[entry.name as Entity]}</span>
+                <span className="font-black text-lg" style={{ color: entry.color }}>{entry.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
       );
     }
@@ -264,10 +338,13 @@ const StatusLineChart: React.FC<Props> = ({
     <div className="w-full">
       {/* Chart with Sticky Y-Axis */}
       <div
-        className="relative rounded-2xl overflow-hidden"
+        className="relative rounded-3xl overflow-hidden"
         style={{
-          background: "var(--clay-surface)",
-          boxShadow: "inset 2px 2px 6px rgba(255, 255, 255, 0.8), inset -2px -2px 6px rgba(170, 160, 140, 0.1)",
+          // Classic Clay/Neumorphism base color - distinct from white but still very bright
+          background: "#ECF0F3", 
+          // Deeper, sharper shadows for stronger contrast
+          boxShadow: "inset 6px 6px 12px rgba(166, 180, 200, 0.4), inset -6px -6px 12px rgba(255, 255, 255, 1)",
+          border: "1px solid rgba(255,255,255,0.4)"
         }}
       >
         {/* Chart container - flexible height based on viewport */}
@@ -278,8 +355,8 @@ const StatusLineChart: React.FC<Props> = ({
             className="flex-shrink-0 z-10 relative"
             style={{
               width: Y_AXIS_WIDTH,
-              background: "var(--clay-surface)",
-              borderRight: "1px solid rgba(170, 160, 140, 0.1)",
+              background: "#ECF0F3", // Match container
+              borderRight: "1px solid rgba(166, 180, 200, 0.2)", // Subtle darker border
             }}
           >
             <div className="relative w-full h-full">
@@ -300,8 +377,8 @@ const StatusLineChart: React.FC<Props> = ({
                     }}
                   >
                     <span
-                      className="text-[10px] font-medium text-slate-500"
-                      style={{ color: "#6b7280" }}
+                      className="text-xs font-bold text-slate-500" // Increased from text-[10px] to text-xs (12px)
+                      style={{ color: "#475569" }}
                     >
                       {tick}
                     </span>
@@ -341,10 +418,36 @@ const StatusLineChart: React.FC<Props> = ({
                   data={chartData}
                   margin={{ top: MARGIN_TOP, right: 20, left: 0, bottom: MARGIN_BOTTOM }}
                 >
+                  <defs>
+                    {/* Shadow filter for lines to make them float */}
+                    <filter id="clay-line-shadow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feDropShadow dx="2" dy="4" stdDeviation="3" floodColor="#000" floodOpacity="0.15" />
+                    </filter>
+                    
+                    {/* Shadow filter for dots */}
+                    <filter id="clay-dot-shadow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feDropShadow dx="1" dy="2" stdDeviation="2" floodColor="#000" floodOpacity="0.2" />
+                    </filter>
+
+                    {/* Gradients for 3D sphere look */}
+                    <radialGradient id="grad-Government" cx="30%" cy="30%" r="70%">
+                      <stop offset="0%" stopColor="#fca5a5" /> {/* lighter red */}
+                      <stop offset="100%" stopColor="#ef4444" /> {/* darker red */}
+                    </radialGradient>
+                    <radialGradient id="grad-Businesses" cx="30%" cy="30%" r="70%">
+                      <stop offset="0%" stopColor="#93c5fd" /> {/* lighter blue */}
+                      <stop offset="100%" stopColor="#3b82f6" /> {/* darker blue */}
+                    </radialGradient>
+                    <radialGradient id="grad-Workers" cx="30%" cy="30%" r="70%">
+                      <stop offset="0%" stopColor="#86efac" /> {/* lighter green */}
+                      <stop offset="100%" stopColor="#22c55e" /> {/* darker green */}
+                    </radialGradient>
+                  </defs>
+
                   {/* Horizontal grid lines - Automatic alignment */}
                   <CartesianGrid
                     strokeDasharray="0"
-                    stroke="rgba(170, 160, 140, 0.15)"
+                    stroke="rgba(166, 180, 200, 0.4)" 
                     vertical={false}
                   />
 
@@ -353,7 +456,7 @@ const StatusLineChart: React.FC<Props> = ({
                     <ReferenceLine
                       key={`round-${round}`}
                       x={x}
-                      stroke={round % 5 === 0 ? "rgba(170, 160, 140, 0.4)" : "rgba(170, 160, 140, 0.15)"}
+                      stroke={round % 5 === 0 ? "rgba(166, 180, 200, 0.6)" : "rgba(166, 180, 200, 0.2)"}
                       strokeWidth={round % 5 === 0 ? 1.5 : 1}
                       strokeDasharray={round % 5 === 0 ? "0" : "4 4"}
                     />
@@ -366,10 +469,11 @@ const StatusLineChart: React.FC<Props> = ({
                     domain={[0, TOTAL_TURNS]}
                     ticks={xAxisTicks}
                     tickFormatter={formatXTick}
-                    tick={{ fontSize: 9, fill: "#6b7280" }}
-                    axisLine={{ stroke: "rgba(170, 160, 140, 0.4)" }}
-                    tickLine={{ stroke: "rgba(170, 160, 140, 0.3)" }}
+                    tick={{ fontSize: 12, fill: "#475569", fontWeight: 700 }} // Increased font size & contrast
+                    axisLine={{ stroke: "rgba(166, 180, 200, 0.4)", strokeWidth: 2 }}
+                    tickLine={false}
                     height={X_AXIS_HEIGHT} // Explicit height
+                    dy={5}
                   />
 
                   <YAxis 
@@ -379,41 +483,47 @@ const StatusLineChart: React.FC<Props> = ({
                     padding={{ top: 0, bottom: 0 }} 
                   />
 
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(0,0,0,0.1)', strokeWidth: 2 }} />
 
-                  {/* Smooth curved lines */}
+                  {/* Smooth curved lines with Clay effect */}
                   <Line
                     type="monotone"
                     dataKey="Government"
                     stroke={ENTITY_COLORS.Government}
-                    strokeWidth={2.5}
-                    dot={{ r: 3, fill: ENTITY_COLORS.Government, strokeWidth: 0 }}
-                    activeDot={{ r: 5, fill: ENTITY_COLORS.Government, stroke: "#fff", strokeWidth: 2 }}
+                    strokeWidth={5}
+                    strokeLinecap="round"
+                    dot={<ClayDot />}
+                    activeDot={{ r: 8, fill: "url(#grad-Government)", stroke: "#fff", strokeWidth: 3, filter: "url(#clay-dot-shadow)" }}
                     connectNulls={false}
                     isAnimationActive={true}
-                    animationDuration={300}
+                    animationDuration={500}
+                    filter="url(#clay-line-shadow)"
                   />
                   <Line
                     type="monotone"
                     dataKey="Businesses"
                     stroke={ENTITY_COLORS.Businesses}
-                    strokeWidth={2.5}
-                    dot={{ r: 3, fill: ENTITY_COLORS.Businesses, strokeWidth: 0 }}
-                    activeDot={{ r: 5, fill: ENTITY_COLORS.Businesses, stroke: "#fff", strokeWidth: 2 }}
+                    strokeWidth={5}
+                    strokeLinecap="round"
+                    dot={<ClayDot />}
+                    activeDot={{ r: 8, fill: "url(#grad-Businesses)", stroke: "#fff", strokeWidth: 3, filter: "url(#clay-dot-shadow)" }}
                     connectNulls={false}
                     isAnimationActive={true}
-                    animationDuration={300}
+                    animationDuration={500}
+                    filter="url(#clay-line-shadow)"
                   />
                   <Line
                     type="monotone"
                     dataKey="Workers"
                     stroke={ENTITY_COLORS.Workers}
-                    strokeWidth={2.5}
-                    dot={{ r: 3, fill: ENTITY_COLORS.Workers, strokeWidth: 0 }}
-                    activeDot={{ r: 5, fill: ENTITY_COLORS.Workers, stroke: "#fff", strokeWidth: 2 }}
+                    strokeWidth={5}
+                    strokeLinecap="round"
+                    dot={<ClayDot />}
+                    activeDot={{ r: 8, fill: "url(#grad-Workers)", stroke: "#fff", strokeWidth: 3, filter: "url(#clay-dot-shadow)" }}
                     connectNulls={false}
                     isAnimationActive={true}
-                    animationDuration={300}
+                    animationDuration={500}
+                    filter="url(#clay-line-shadow)"
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -423,29 +533,53 @@ const StatusLineChart: React.FC<Props> = ({
       </div>
 
       {/* Current values display (Legend) - compact on laptop, larger on big screens */}
-      <div className="flex justify-center gap-3 xl:gap-6 mt-1">
-        {(["Government", "Businesses", "Workers"] as Entity[]).map((entity) => (
-          <div
-            key={entity}
-            className="flex items-center gap-1 xl:gap-2 px-2 xl:px-4 py-1 xl:py-2 rounded-full transition-all"
-            style={{
-              background: `linear-gradient(135deg, ${ENTITY_COLORS[entity]}15 0%, ${ENTITY_COLORS[entity]}05 100%)`,
-              border: `1px solid ${ENTITY_COLORS[entity]}40`,
-              boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
-            }}
-          >
-             <div
-              className="w-2 h-2 xl:w-3 xl:h-3 rounded-full shadow-sm"
-              style={{ backgroundColor: ENTITY_COLORS[entity] }}
-            />
-            <span className="text-[10px] xl:text-sm font-bold" style={{ color: ENTITY_COLORS[entity] }}>
-              {ENTITY_LABELS[entity]}
-            </span>
-            <span className="text-[10px] xl:text-sm font-semibold text-slate-600">
-              {currentBars[entity]}
-            </span>
-          </div>
-        ))}
+      <div className="flex justify-center gap-3 xl:gap-6 mt-4 mb-2">
+        {(["Government", "Businesses", "Workers"] as Entity[]).map((entity) => {
+          // Calculate fill percentage (0-50 scale)
+          const value = currentBars[entity];
+          const percentage = Math.min(100, Math.max(0, (value / 50) * 100));
+          const color = ENTITY_COLORS[entity];
+          
+          return (
+            <div
+              key={entity}
+              className="relative flex items-center gap-2 px-3 py-2 xl:px-4 xl:py-3 rounded-2xl transition-all hover:-translate-y-1 overflow-hidden"
+              style={{
+                // Changed from white to Slate-100 for better contrast against the chart/page
+                background: "#F1F5F9", 
+                // Claymorphism shadow/border
+                border: "2px solid rgba(255,255,255,0.6)",
+                boxShadow: "4px 4px 8px rgba(163, 177, 198, 0.25), -4px -4px 8px rgba(255, 255, 255, 0.9)",
+                minWidth: "100px" // Reduced min-width
+              }}
+            >
+              {/* Progress Bar Fill Background - Subtle Lighter Strip */}
+              <div 
+                className="absolute inset-y-0 left-0 transition-all duration-500 ease-out"
+                style={{
+                  width: `${percentage}%`,
+                  // Subtle gradient fill behind
+                  background: `linear-gradient(to right, ${color}10, ${color}30)`, 
+                  borderRight: `2px solid ${color}60`, // Semi-transparent border
+                }}
+              />
+
+              <div
+                className="relative z-10 w-3 h-3 xl:w-4 xl:h-4 rounded-full"
+                style={{ 
+                  backgroundColor: color,
+                  boxShadow: `inset 1.5px 1.5px 3px rgba(255,255,255,0.7), inset -1.5px -1.5px 3px rgba(0,0,0,0.1), 2px 2px 4px rgba(0,0,0,0.15)`
+                }}
+              />
+              <span className="relative z-10 text-xs xl:text-sm font-black tracking-wide" style={{ color: color, textShadow: "1px 1px 0px white" }}>
+                {ENTITY_LABELS[entity]}
+              </span>
+              <span className="relative z-10 ml-auto text-xs xl:text-sm font-black text-slate-700 pl-2">
+                {currentBars[entity]}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -17,9 +17,13 @@ export default function GameOverScreen({
 }: GameOverScreenProps) {
   return (
     <div
-      className={`min-h-screen w-full relative overflow-hidden flex items-center justify-center menu-container fade-in ${
-        menuFadingOut ? "fade-out" : ""
-      } ${endingFadingIn ? "animate-fadeIn" : ""}`}
+      className={`min-h-screen w-full relative overflow-hidden flex items-center justify-center ${
+        menuFadingOut
+          ? "animate-screenFadeOut"
+          : endingFadingIn
+          ? "animate-endingEntrance"
+          : "opacity-100"
+      }`}
       style={{
         backgroundImage: "url('/background/bg_failed.jpg')",
         backgroundSize: "cover",
@@ -53,7 +57,7 @@ export default function GameOverScreen({
             `}
           >
             <span className="relative z-10 drop-shadow-md">
-              {startButtonAnimating ? "Đang tải..." : "Chơi lại"}
+              Chơi lại
             </span>
           </button>
 

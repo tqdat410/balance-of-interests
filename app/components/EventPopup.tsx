@@ -32,6 +32,15 @@ const ENTITY_NAMES: Record<string, string> = {
   Workers: "Người lao động",
 };
 
+// Glassmorphism style matching leaderboard
+const glassContainerStyle = {
+  background: "rgba(255, 255, 255, 0.45)",
+  backdropFilter: "blur(16px)",
+  WebkitBackdropFilter: "blur(16px)",
+  boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.15)",
+  border: "1px solid rgba(255, 255, 255, 0.6)"
+};
+
 const EventPopup: React.FC<Props> = ({
   event,
   onContinue,
@@ -46,27 +55,21 @@ const EventPopup: React.FC<Props> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fadeIn" />
+      {/* Backdrop - Glassmorphism blur */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-md animate-fadeIn" />
 
-      {/* Modal - Horizontal 16:9 layout, reduced size */}
+      {/* Modal - Horizontal 16:9 layout with Glassmorphism */}
       <div 
         className="relative z-10 w-full max-w-2xl xl:max-w-3xl animate-popupScaleIn"
       >
         <div
-          className="rounded-2xl overflow-hidden"
-          style={{
-            background: "var(--clay-surface, #fdf6e3)",
-            boxShadow: `
-              20px 20px 40px rgba(0, 0, 0, 0.25),
-              -10px -10px 30px rgba(255, 255, 255, 0.15)
-            `,
-          }}
+          className="rounded-[32px] overflow-hidden"
+          style={glassContainerStyle}
         >
-          {/* Image Section - Full width, 16:9 */}
+          {/* Image Section - Full width, 16:9 with rounded corners */}
           <div 
-            className="relative w-full"
-            style={{ aspectRatio: "16/9" }}
+            className="relative w-full m-3 rounded-[24px] overflow-hidden"
+            style={{ aspectRatio: "16/9", width: "calc(100% - 24px)" }}
           >
             {event.imageUrl ? (
               <img
@@ -84,13 +87,13 @@ const EventPopup: React.FC<Props> = ({
             )}
             
             {/* Overlay gradient at bottom for text */}
-            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent" />
             
             {/* Event Name with Description - Overlaid on image bottom */}
             <div className="absolute inset-x-0 bottom-0 p-4 xl:p-6">
               <div
                 className={`
-                  inline-block px-3 py-1 rounded-full text-xs xl:text-sm font-semibold mb-2
+                  inline-block px-3 py-1 rounded-full text-xs xl:text-sm font-bold mb-2
                   ${isSpecial 
                     ? "bg-purple-500/90 text-white" 
                     : "bg-amber-500/90 text-white"
@@ -114,15 +117,15 @@ const EventPopup: React.FC<Props> = ({
           </div>
 
           {/* Bottom Bar - Content + Buttons horizontal */}
-          <div className="flex items-center gap-4 p-4 xl:p-5">
+          <div className="flex items-center gap-4 px-4 pb-4 xl:px-5 xl:pb-5">
             {/* Left: Effects */}
             <div className="flex-1 flex items-center gap-3 flex-wrap">
               {/* Outcomes indicator for Special Events */}
               {isSpecial && (
-                <span className="text-sm text-slate-600">
-                  <span className="text-green-600 font-medium">✓ Thành công</span>
+                <span className="text-sm text-slate-600 font-medium">
+                  <span className="text-green-600">✓ Thành công</span>
                   {" / "}
-                  <span className="text-red-600 font-medium">✗ Thất bại</span>
+                  <span className="text-red-600">✗ Thất bại</span>
                 </span>
               )}
 
@@ -135,10 +138,10 @@ const EventPopup: React.FC<Props> = ({
                       <span
                         key={entity}
                         className={`
-                          px-3 py-1 rounded-full text-sm font-semibold
+                          px-3 py-1.5 rounded-xl text-sm font-bold
                           ${value > 0 
-                            ? "bg-green-100 text-green-700" 
-                            : "bg-red-100 text-red-700"
+                            ? "bg-green-100/80 text-green-700" 
+                            : "bg-red-100/80 text-red-700"
                           }
                         `}
                       >
@@ -152,28 +155,28 @@ const EventPopup: React.FC<Props> = ({
               {isSpecial && (
                 <div className="flex items-center gap-3 flex-wrap">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-green-600 font-medium text-sm">✓</span>
+                    <span className="text-green-600 font-bold text-sm">✓</span>
                     {event.positiveEffects &&
                       Object.entries(getOriginalEffects(event.positiveEffects))
                         .filter(([, value]) => value !== 0)
                         .map(([entity, value]) => (
                           <span
                             key={entity}
-                            className="px-2 py-0.5 rounded bg-green-100 text-green-700 text-sm font-medium"
+                            className="px-2 py-1 rounded-lg bg-green-100/80 text-green-700 text-sm font-bold"
                           >
                             {ENTITY_LABELS[entity]}: {Math.abs(value)}
                           </span>
                         ))}
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-red-600 font-medium text-sm">✗</span>
+                    <span className="text-red-600 font-bold text-sm">✗</span>
                     {event.negativeEffects &&
                       Object.entries(getOriginalEffects(event.negativeEffects))
                         .filter(([, value]) => value !== 0)
                         .map(([entity, value]) => (
                           <span
                             key={entity}
-                            className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-sm font-medium"
+                            className="px-2 py-1 rounded-lg bg-red-100/80 text-red-700 text-sm font-bold"
                           >
                             {ENTITY_LABELS[entity]}: {Math.abs(value)}
                           </span>
@@ -183,26 +186,27 @@ const EventPopup: React.FC<Props> = ({
               )}
             </div>
 
-            {/* Right: Buttons */}
-            <div className="flex gap-2 flex-shrink-0">
+            {/* Right: Buttons - Claymorphism style */}
+            <div className="flex gap-3 flex-shrink-0">
               {isSpecial ? (
                 <>
                   <button
                     onClick={onSkip || onContinue}
-                    className="py-2.5 px-5 rounded-xl font-semibold text-sm text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95"
+                    className="py-2.5 px-6 rounded-2xl font-bold text-sm text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95"
                     style={{
-                      background: "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)",
-                      boxShadow: "4px 4px 10px rgba(170,160,140,0.25), -2px -2px 8px rgba(255,255,255,0.9)",
+                      background: "rgba(241, 245, 249, 0.9)",
+                      boxShadow: "4px 4px 12px rgba(0,0,0,0.1), -2px -2px 8px rgba(255,255,255,0.9)",
+                      border: "1px solid rgba(255,255,255,0.8)"
                     }}
                   >
                     Bỏ qua
                   </button>
                   <button
                     onClick={onExecute || onContinue}
-                    className="py-2.5 px-5 rounded-xl font-semibold text-sm text-white transition-all duration-200 hover:scale-105 active:scale-95"
+                    className="py-2.5 px-6 rounded-2xl font-bold text-sm text-white transition-all duration-200 hover:scale-105 active:scale-95"
                     style={{
                       background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                      boxShadow: "4px 4px 10px rgba(139,92,246,0.35), -2px -2px 8px rgba(255,255,255,0.15)",
+                      boxShadow: "4px 4px 12px rgba(139,92,246,0.35), -2px -2px 8px rgba(255,255,255,0.15)",
                     }}
                   >
                     Thực hiện
@@ -211,10 +215,10 @@ const EventPopup: React.FC<Props> = ({
               ) : (
                 <button
                   onClick={onContinue}
-                  className="py-2.5 px-6 rounded-xl font-semibold text-sm text-white transition-all duration-200 hover:scale-105 active:scale-95"
+                  className="py-2.5 px-8 rounded-2xl font-bold text-sm text-white transition-all duration-200 hover:scale-105 active:scale-95"
                   style={{
                     background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                    boxShadow: "4px 4px 10px rgba(245,158,11,0.35), -2px -2px 8px rgba(255,255,255,0.15)",
+                    boxShadow: "4px 4px 12px rgba(245,158,11,0.35), -2px -2px 8px rgba(255,255,255,0.15)",
                   }}
                 >
                   Chấp nhận!

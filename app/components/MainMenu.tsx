@@ -1,5 +1,4 @@
 import React from "react";
-import FAQPopup from "./FAQPopup";
 
 interface MainMenuProps {
   startGame: () => void;
@@ -10,8 +9,6 @@ interface MainMenuProps {
   startButtonAnimating: boolean;
   startClickAnimation: string | null;
   menuFadingOut: boolean;
-  showFAQ: boolean;
-  setShowFAQ: (show: boolean) => void;
   inputShaking: boolean;
 }
 
@@ -24,14 +21,12 @@ export default function MainMenu({
   startButtonAnimating,
   startClickAnimation,
   menuFadingOut,
-  showFAQ,
-  setShowFAQ,
   inputShaking,
 }: MainMenuProps) {
   return (
     <div
-      className={`min-h-screen w-full relative overflow-hidden flex items-center justify-center menu-container ${
-        menuFadingOut ? "fade-out" : ""
+      className={`min-h-screen w-full relative overflow-hidden flex items-center justify-center ${
+        menuFadingOut ? "animate-screenFadeOut" : "animate-screenFadeIn"
       }`}
       style={{
         backgroundImage: "url('/background/bg_menu.jpg')",
@@ -39,17 +34,7 @@ export default function MainMenu({
         backgroundPosition: "center",
       }}
     >
-      {/* FAQ Button - top left on menu */}
-      <div className="absolute top-5 left-10 z-50">
-        <button
-          className="faq-button"
-          title="Hướng dẫn"
-          onClick={() => setShowFAQ(!showFAQ)}
-        >
-          ?
-        </button>
-        {showFAQ && <FAQPopup onClose={() => setShowFAQ(false)} />}
-      </div>
+      {/* FAQ Button removed - now handled by GameControlButtons */}
 
       {/* Decorative Circles instead of Grid */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -131,7 +116,7 @@ export default function MainMenu({
               `}
             >
               <span className="relative z-10 drop-shadow-md">
-                {startButtonAnimating ? "Đang tải..." : "Bắt đầu trò chơi"}
+                Bắt đầu trò chơi
               </span>
             </button>
             <a

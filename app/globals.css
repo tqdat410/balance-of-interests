@@ -15,6 +15,17 @@ body {
   font-family: "DFVN_Hogfish", sans-serif !important;
 }
 
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Prevent scrollbars globally */
+  overscroll-behavior: none; /* Prevent pull-to-refresh on mobile */
+  touch-action: none; /* Disable default touch actions */
+}
+
 /* Custom cursor styles */
 * {
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="%236b7280" opacity="0.8"/></svg>')
@@ -518,6 +529,20 @@ button:disabled,
   animation: endingFadeIn 1.2s ease-out;
 }
 
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
 @keyframes titleGlow {
   0%,
   100% {
@@ -1017,3 +1042,179 @@ button:disabled,
     flex-shrink: 0 !important;
   }
 }
+
+/* ============================================
+   LOADING SCREEN & SMOOTH TRANSITION ANIMATIONS
+   ============================================ */
+
+/* Gentle floating animation for background blobs */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px);
+  }
+  50% {
+    transform: translateY(-10px) translateX(-10px);
+  }
+  75% {
+    transform: translateY(-25px) translateX(5px);
+  }
+}
+
+.animate-float {
+  animation: float 8s ease-in-out infinite;
+}
+
+/* Gentle fade-in with slight scale */
+@keyframes gentleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-gentleFadeIn {
+  animation: gentleFadeIn 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Gentle pulse for balance icon */
+@keyframes gentlePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+.animate-gentlePulse {
+  animation: gentlePulse 2s ease-in-out infinite;
+}
+
+/* ============================================
+   SMOOTH SCREEN TRANSITIONS
+   ============================================ */
+
+/* Smooth screen fade transition */
+@keyframes screenFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes screenFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+.animate-screenFadeIn {
+  animation: zoomInFadeIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-screenFadeOut {
+  animation: zoomInBlurOut 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Zoom In + Blur Transition (Running straight into) */
+@keyframes zoomInBlurOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+    filter: blur(8px);
+  }
+}
+
+@keyframes zoomInFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Zoom Out Entrance (Start Big -> End Normal) */
+@keyframes zoomOutFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(1.3);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+.animate-endingEntrance {
+  animation: zoomOutFadeIn 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* ============================================
+   SMOOTH CARD ANIMATIONS
+   ============================================ */
+
+/* Card selection - smooth exit */
+@keyframes cardSelectExit {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95) translateY(-5px);
+  }
+}
+
+.animate-cardSelectExit {
+  animation: cardSelectExit 0.3s ease-out forwards;
+}
+
+/* Card hover enhancement */
+@keyframes cardHoverGlow {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Smooth card container transition */
+.cards-container {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Individual card stagger delays */
+.card-stagger-1 { animation-delay: 0s; }
+.card-stagger-2 { animation-delay: 0.1s; }
+.card-stagger-3 { animation-delay: 0.2s; }

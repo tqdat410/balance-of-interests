@@ -50,7 +50,7 @@ export default function GamePlayArea({
       {/* Desktop Layout - uses full height, centers content */}
       <div className="hidden md:flex w-full h-full flex-col px-3 xl:px-6 items-center justify-center">
         {/* Chart Section - responsive max-width for larger screens */}
-        <div className="w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1600px] mx-auto flex-shrink-0">
+        <div className="w-[70%] max-w-6xl xl:max-w-7xl 2xl:max-w-[1600px] mx-auto flex-shrink-0">
           <StatusLineChart
             history={history}
             currentBars={bars}
@@ -60,15 +60,27 @@ export default function GamePlayArea({
         </div>
 
         {/* Action Area - Compact, responsive */}
-        <div className="w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1600px] mx-auto mt-1 xl:mt-3 flex flex-col items-center">
+        <div className="w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1600px] mx-auto mt-2 xl:mt-1 flex flex-col items-center">
           {currentEntity && (
             <>
-              {/* Info Text - compact on laptop */}
-              <div className="text-center mb-0.5 xl:mb-2">
-                <span className="text-slate-500 text-xs xl:text-base">
-                  Lượt {turnIndex + 1}/{turnOrder.length} -{" "}
+              {/* Info Text - Enhanced Styling */}
+              <div className="text-center px-6 py-2 rounded-full bg-white/50 backdrop-blur-sm inline-flex items-center gap-4">
+                <span className="text-slate-600 font-bold text-sm xl:text-lg">
+                  Vòng {round}/30
                 </span>
-                <span className="text-sm xl:text-lg font-semibold text-purple-600">
+                <span className="text-slate-400 font-light mx-1">|</span>
+                <span className="text-slate-600 font-bold text-sm xl:text-lg">
+                  Lượt {turnIndex + 1}/{turnOrder.length}
+                </span>
+                <span className="text-slate-400 font-light mx-1">:</span>
+                <span 
+                  className={`text-base xl:text-xl font-black uppercase tracking-wide
+                    ${currentEntity === "Government" ? "text-red-500" : ""}
+                    ${currentEntity === "Businesses" ? "text-blue-500" : ""}
+                    ${currentEntity === "Workers" ? "text-green-500" : ""}
+                  `}
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.1)" }}
+                >
                   {currentEntity === "Government" && "Nhà Nước"}
                   {currentEntity === "Businesses" && "Doanh Nghiệp"}
                   {currentEntity === "Workers" && "Người Lao Động"}

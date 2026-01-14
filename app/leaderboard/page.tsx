@@ -37,7 +37,6 @@ export default function LeaderboardPage() {
     setError(null);
 
     try {
-      // Call Next.js API route (no credentials exposed to client)
       const response = await fetch("/api/leaderboard", {
         method: "POST",
         headers: {
@@ -63,12 +62,9 @@ export default function LeaderboardPage() {
         return;
       }
 
-      // Extract total count from pagination info
       const totalCount = result.pagination?.totalCount || 0;
-      console.log("Total count:", totalCount, "Items per page:", itemsPerPage);
       setTotalCount(totalCount);
 
-      // Remove total_count field from records
       const records = data.map(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         ({ total_count, ...record }: LeaderboardEntry & { total_count?: number }) => record
@@ -79,7 +75,6 @@ export default function LeaderboardPage() {
       setError(
         message || "Không thể tải bảng xếp hạng. Vui lòng thử lại sau."
       );
-      console.error("Error fetching leaderboard:", err);
     } finally {
       if (isManualReload) {
         setIsReloading(false);
@@ -99,194 +94,218 @@ export default function LeaderboardPage() {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  return (
-    <div className="min-h-screen w-full bg-white relative overflow-hidden">
-      {/* Background */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: "url('/background/bg_leaderboard.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
+  // Helper for Glassmorphism styles
+  const glassCardStyle = {
+    background: "rgba(255, 255, 255, 0.65)", // More opaque for readability
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.15)",
+    border: "1px solid rgba(255, 255, 255, 0.8)"
+  };
 
-      {/* Back Button - Top Left */}
-      <div className="absolute top-5 left-5 z-50">
-        <Link
-          href="/"
-          className="inline-block px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all duration-200 text-lg"
+  const glassContainerStyle = {
+    background: "rgba(255, 255, 255, 0.35)", // Lighter for main container
+    backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)",
+    boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.1)",
+    border: "1px solid rgba(255, 255, 255, 0.6)"
+  };
+
+  // Enable native scrolling for this page
+  useEffect(() => {
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    const originalTouchAction = document.body.style.touchAction;
+
+    document.body.style.overflow = "auto";
+    document.documentElement.style.overflow = "auto";
+    document.body.style.touchAction = "auto";
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.body.style.touchAction = originalTouchAction;
+    };
+  }, []);
+
+  return (
+    <div className="min-h-screen w-full relative overflow-y-auto overflow-x-hidden">
+      {/* Background Image */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ 
+          backgroundImage: "url('/background/bg_leaderboard.jpg')",
+        }} 
+      />
+      
+      {/* Overlay Gradient for better text readability at bottom */}
+      <div className="fixed inset-0 z-0 bg-gradient-to-t from-white/40 via-transparent to-transparent pointer-events-none" />
+
+      {/* Navigation & Actions Header - Simplified */}
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 pt-8 pb-2 flex justify-center items-center">
+        {/* Title - Clean & Solid Gold Style matching GameOver */}
+        <h1 className="hidden md:block text-8xl xl:text-7xl font-bold text-amber-500 tracking-tight mb-4 drop-shadow-sm mt-2"
+            style={{ 
+              textShadow: "1px 1px 0px #FFF, -1px -1px 0 #FFF, 1px -1px 0 #FFF, -1px 1px 0 #FFF, 1px 1px 0 #FFF" 
+            }}
         >
-          ← Trang chủ
-        </Link>
+          BẢNG XẾP HẠNG
+        </h1>
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mt-8">
-          <h1 className="text-7xl text-amber-500 mb-4"> Bảng🏆Xếp Hạng</h1>
-          <p className="text-xl text-slate-600">Top người chơi xuất sắc nhất</p>
-        </div>
+      <div className="md:hidden text-center mb-6 relative z-10 mt-8">
+         <h1 className="text-6xl font-bold text-amber-500 tracking-tight" style={{ textShadow: "1px 1px 0px #FFF" }}>XẾP HẠNG</h1>
+      </div>
 
-        {/* Loading State */}
-        {loading && (
-          <div className="text-center py-12">
-            <p className="text-2xl text-slate-600">Đang tải...</p>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <div className="text-center py-12">
-            <p className="text-xl text-red-500">{error}</p>
-            <button
-              onClick={() => fetchLeaderboard(false)}
-              className="mt-4 px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all"
+      {/* Main Content Area - Glass Container */}
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 pb-8 mt-12 xl:mt-20">
+        <div 
+          className="w-full rounded-[40px] p-4 md:p-8 min-h-[60vh] transition-all duration-500 relative"
+          style={glassContainerStyle}
+        >
+          {/* Controls Bar: Home (Left) - Pagination & Refresh (Right) */}
+          <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            
+            {/* Home Link - Simple Text */}
+            <Link
+              href="/"
+              className="text-slate-700 font-bold text-lg hover:text-amber-600 transition-colors flex items-center gap-2 px-2"
             >
-              Thử lại
-            </button>
-          </div>
-        )}
+              <span>⭠ Trang chủ</span>
+            </Link>
 
-        {/* Reload Button and Top Pagination */}
-        {!loading && !error && (
-          <div className="flex justify-between items-center mb-4">
-            {/* Pagination - Top Left */}
-            {totalCount > 0 ? (
-              <div className="flex items-center gap-2">
+            {/* Pagination & Refresh Group */}
+            {!loading && !error && (
+              <div className="flex items-center gap-4">
+                {totalCount > itemsPerPage && (
+                  <div className="flex items-center gap-3 bg-white/40 rounded-xl p-1 backdrop-blur-sm shadow-sm border border-white/40">
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/60 text-slate-700 font-bold hover:bg-white disabled:opacity-30 transition-all"
+                    >
+                      ←
+                    </button>
+                    <span className="text-sm font-bold text-slate-700 min-w-[60px] text-center">
+                      {currentPage} / {Math.ceil(totalCount / itemsPerPage)}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.min(Math.ceil(totalCount / itemsPerPage), p + 1))}
+                      disabled={currentPage >= Math.ceil(totalCount / itemsPerPage)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/60 text-slate-700 font-bold hover:bg-white disabled:opacity-30 transition-all"
+                    >
+                      →
+                    </button>
+                  </div>
+                )}
+
+                {/* Refresh Button */}
                 <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="w-10 h-10 flex items-center justify-center bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all font-bold text-xl"
+                  onClick={() => {
+                    setCurrentPage(1);
+                    fetchLeaderboard(true);
+                  }}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/40 text-slate-700 hover:bg-white hover:text-amber-600 transition-all active:rotate-180 shadow-sm border border-white/40"
+                  title="Tải lại"
+                  disabled={isReloading}
                 >
-                  &lt;
-                </button>
-                <span className="text-lg text-slate-700 font-semibold min-w-20 text-center">
-                  {currentPage}/{Math.ceil(totalCount / itemsPerPage)}
-                </span>
-                <button
-                  onClick={() =>
-                    setCurrentPage((p) =>
-                      Math.min(Math.ceil(totalCount / itemsPerPage), p + 1)
-                    )
-                  }
-                  disabled={currentPage >= Math.ceil(totalCount / itemsPerPage)}
-                  className="w-10 h-10 flex items-center justify-center bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all font-bold text-xl"
-                >
-                  &gt;
+                  <span className={`text-xl ${isReloading ? "animate-spin" : ""}`}>↻</span>
                 </button>
               </div>
-            ) : (
-              <div></div>
             )}
-
-            {/* Reload Button - Top Right */}
-            <button
-              onClick={() => {
-                setCurrentPage(1);
-                fetchLeaderboard(true);
-              }}
-              className={`p-3 bg-amber-500 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 ${
-                isReloading ? "opacity-70 cursor-wait" : "hover:bg-amber-600"
-              }`}
-              title="Tải lại"
-              disabled={isReloading}
-            >
-              <svg
-                className={`w-5 h-5 ${isReloading ? "animate-spin" : ""}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-            </button>
           </div>
-        )}
 
-        {/* Leaderboard Table */}
-        {!loading && !error && (
-          <div className="bg-white rounded-xl shadow-2xl overflow-hidden border-4 border-amber-400">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-amber-500 text-white">
-                  <tr>
-                    <th className="px-4 py-4 text-center text-xl">Hạng</th>
-                    <th className="px-4 py-4 text-left text-xl">Tên</th>
-                    <th className="px-4 py-4 text-center text-xl">Vòng</th>
-                    <th className="px-4 py-4 text-center text-xl">N - D - L</th>
-                    <th className="px-4 py-4 text-center text-xl">Hành động</th>
-                    <th className="px-4 py-4 text-center text-xl">Thời gian</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entries.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-4 py-12 text-center text-slate-500 text-xl"
-                      >
-                        Chưa có dữ liệu
-                      </td>
-                    </tr>
-                  ) : (
-                    entries.map((entry, index) => {
-                      const globalRank =
-                        (currentPage - 1) * itemsPerPage + index;
-                      return (
-                        <tr
-                          key={entry.id}
-                          className={`border-b border-slate-200 hover:bg-amber-50 transition-colors ${
-                            globalRank < 3 ? "bg-amber-50 text-2xl" : "text-xl"
-                          }`}
-                        >
-                          <td className="px-4 py-4 text-center">
-                            {globalRank === 0 && "🥇"}
-                            {globalRank === 1 && "🥈"}
-                            {globalRank === 2 && "🥉"}
-                            {globalRank > 2 && `${globalRank + 1}`}
-                          </td>
-                          <td className="px-4 py-4 text-slate-700">
-                            {entry.name}
-                          </td>
-                          <td className="px-4 py-4 text-center text-purple-600">
-                            {entry.final_round}/30
-                          </td>
-                          <td className="px-4 py-4 text-center">
-                            <span className="text-red-600 font-semibold">
-                              {entry.gov_bar}
-                            </span>
-                            {" - "}
-                            <span className="text-blue-600 font-semibold">
-                              {entry.bus_bar}
-                            </span>
-                            {" - "}
-                            <span className="text-green-600 font-semibold">
-                              {entry.wor_bar}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4 text-center text-slate-600">
-                            {entry.total_action}
-                          </td>
-                          <td className="px-4 py-4 text-center text-slate-600">
-                            {formatDuration(entry.duration)}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+          {loading && !isReloading ? (
+            <div className="w-full h-64 flex flex-col items-center justify-center gap-4">
+              <div className="w-16 h-16 border-4 border-white border-t-amber-500 rounded-full animate-spin shadow-lg" />
+              <p className="text-slate-700 font-bold animate-pulse">Đang tải dữ liệu...</p>
             </div>
-          </div>
-        )}
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-xl text-red-600 font-bold mb-4 bg-white/50 inline-block px-4 py-2 rounded-lg">{error}</p>
+              <br/>
+              <button
+                onClick={() => fetchLeaderboard(false)}
+                className="px-8 py-3 rounded-xl bg-amber-500 text-white font-bold shadow-lg hover:shadow-xl hover:bg-amber-600 transition-all active:scale-95"
+              >
+                Thử lại
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {entries.length === 0 ? (
+                <div className="text-center py-12 text-slate-500 font-medium text-xl bg-white/40 rounded-3xl">
+                  Chưa có dữ liệu nào. Hãy là người đầu tiên ghi danh! 🚀
+                </div>
+              ) : (
+                entries.map((entry, index) => {
+                  const globalRank = (currentPage - 1) * itemsPerPage + index;
+                  const isTop1 = globalRank === 0;
+                  const isTop2 = globalRank === 1;
+                  const isTop3 = globalRank === 2;
+                  
+                  return (
+                    <div 
+                      key={entry.id}
+                      className="group flex flex-col md:flex-row items-center gap-4 p-4 px-6 md:py-4 rounded-3xl transition-all duration-300 hover:scale-[1.01] hover:z-10 relative overflow-hidden"
+                      style={{
+                        background: isTop1 ? "rgba(255, 251, 235, 0.9)" : "rgba(255, 255, 255, 0.8)",
+                        backdropFilter: "blur(4px)",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.02), 0 4px 8px rgba(0,0,0,0.05)",
+                        border: isTop1 ? "2px solid #FCD34D" : "1px solid rgba(255,255,255,0.6)"
+                      }}
+                    >
+                      {/* Rank Badge - Simplified */}
+                      <div className="flex-shrink-0 relative">
+                        <div 
+                          className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-2xl font-black text-lg md:text-xl shadow-sm border border-white/50
+                            ${isTop1 ? "bg-amber-400 text-white" : 
+                              isTop2 ? "bg-slate-300 text-slate-600" : 
+                              isTop3 ? "bg-orange-300 text-white" : 
+                              "bg-slate-100 text-slate-500"}`}
+                        >
+                          {globalRank + 1}
+                        </div>
+                      </div>
 
-        {/* Back Button */}
+                      {/* Player Info - Clean Text */}
+                      <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                        <h3 className="text-lg md:text-xl font-black text-slate-800 truncate w-full max-w-[200px] md:max-w-xs leading-tight">
+                          {entry.name}
+                        </h3>
+                        <p className="text-slate-500 text-xs font-bold mt-0.5">
+                          {new Date(entry.created_at).toLocaleDateString('vi-VN')}
+                        </p>
+                      </div>
+
+                      {/* Key Stats - Minimalist Layout */}
+                      <div className="flex items-center justify-center gap-6 md:gap-10 w-full md:w-auto mt-2 md:mt-0">
+                        
+                        {/* Total Actions */}
+                        <div className="flex flex-col items-center">
+                          <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider mb-0.5">Hành động</span>
+                          <span className="text-xl font-black text-blue-600 leading-none">{entry.total_action}</span>
+                        </div>
+
+                        {/* Round */}
+                        <div className="flex flex-col items-center">
+                          <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider mb-0.5">Vòng</span>
+                          <span className="text-xl font-black text-purple-600 leading-none">{entry.final_round}<span className="text-sm text-purple-300">/30</span></span>
+                        </div>
+
+                        {/* Time */}
+                        <div className="flex flex-col items-center min-w-[60px]">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Thời gian</span>
+                          <span className="text-base font-bold text-slate-600 leading-none">{formatDuration(entry.duration)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

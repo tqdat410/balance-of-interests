@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import AudioManager from "./AudioManager";
 
 export default function ClientLayout({
   children,
@@ -10,7 +9,7 @@ export default function ClientLayout({
 }) {
   return (
     <>
-      <AudioManager />
+      {/* AudioManager removed - now handled by GameControlButtons per-screen */}
       {children}
     </>
   );

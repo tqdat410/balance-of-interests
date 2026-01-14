@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS game_records (
   session_id UUID NOT NULL,
   name TEXT NOT NULL CHECK (char_length(name) BETWEEN 2 AND 24),
   final_round SMALLINT NOT NULL CHECK (final_round BETWEEN 0 AND 30),
-  total_action SMALLINT NOT NULL CHECK (total_action BETWEEN 0 AND 90),
+  total_action SMALLINT NOT NULL CHECK (total_action BETWEEN 0 AND 100),
   gov_bar SMALLINT NOT NULL CHECK (gov_bar BETWEEN 0 AND 100),
   bus_bar SMALLINT NOT NULL CHECK (bus_bar BETWEEN 0 AND 100),
   wor_bar SMALLINT NOT NULL CHECK (wor_bar BETWEEN 0 AND 100),
