@@ -102,8 +102,10 @@ export function validateGameProgression(data: {
     return { valid: false, reason: "Bar values out of range" };
   }
 
-  // 2. Validate ending logic
-  if (data.ending === "harmony") {
+  // 2. Validate ending logic (ensure case-insensitivity or upper case matches DB)
+  const ending = data.ending.toUpperCase();
+
+  if (ending === "HARMONY") {
     if (
       data.final_round !== 30 ||
       data.gov_bar !== data.bus_bar ||
@@ -113,13 +115,13 @@ export function validateGameProgression(data: {
     }
   }
 
-  if (data.ending === "failed") {
+  if (ending === "FAILED") {
     if (data.gov_bar > 0 && data.bus_bar > 0 && data.wor_bar > 0) {
       return { valid: false, reason: "Invalid failed ending conditions" };
     }
   }
 
-  if (data.ending === "survival") {
+  if (ending === "SURVIVAL") {
     if (data.final_round !== 30) {
       return { valid: false, reason: "Invalid survival ending conditions" };
     }
@@ -156,8 +158,8 @@ export function validateTimestamp(
     return { valid: false, reason: "Game duration too long" };
   }
 
-  // Min game duration: 10 seconds (prevent instant submissions)
-  if (duration < 10) {
+  // Min game duration: 5 seconds (prevent instant submissions)
+  if (duration < 5) {
     return { valid: false, reason: "Game duration too short" };
   }
 

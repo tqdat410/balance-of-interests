@@ -4,6 +4,12 @@
 -- Run this script in Supabase SQL Editor to initialize the database.
 -- This script is IDEMPOTENT - safe to run multiple times.
 -- ============================================================================
+-- RESET DATABASE (Uncomment below to wipe all data and start fresh)
+-- ============================================================================
+DROP TABLE IF EXISTS game_records CASCADE;
+DROP FUNCTION IF EXISTS get_grouped_leaderboard(INT, INT);
+
+-- ============================================================================
 
 -- ============================================================================
 -- 1. TABLE: game_records

@@ -32,10 +32,10 @@ export const GAME_CONFIG = {
 
   // Player name validation
   NAME_MIN_LENGTH: 2,
-  NAME_MAX_LENGTH: 50,
+  NAME_MAX_LENGTH: 24,
 
   // Duration limits (seconds)
-  MIN_GAME_DURATION: 10,
+  MIN_GAME_DURATION: 5,
   MAX_GAME_DURATION: 7200, // 2 hours
 } as const;
 

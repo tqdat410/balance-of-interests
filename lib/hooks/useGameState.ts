@@ -4,6 +4,7 @@ import {
   EVENTS,
   INITIAL_BARS,
   GAME_CONFIG,
+  BAD_WORDS,
 } from "@/lib/config";
 import {
   Entity,
@@ -299,7 +300,15 @@ export function useGameState() {
 
   const validateAndStartGame = () => {
     const trimmedName = playerName.trim();
-    if (!trimmedName || trimmedName.length < 2 || trimmedName.length > 50) {
+    // Check for bad words
+    const lowerName = trimmedName.toLowerCase();
+    const hasBadWord = BAD_WORDS.some(word => lowerName.includes(word.toLowerCase()));
+
+    if (!trimmedName || trimmedName.length < 2 || trimmedName.length > 50 || hasBadWord) {
+      if (hasBadWord) {
+        // Optional: show a specific message or just shake
+        console.warn("Input contains restricted text.");
+      }
       setInputShaking(true);
       setTimeout(() => setInputShaking(false), 500);
       return;

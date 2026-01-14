@@ -74,7 +74,7 @@ export default function MainMenu({
                   }
                 }}
                 maxLength={24}
-                className={`w-full px-8 py-4 text-3xl text-center rounded-full outline-none transition-all duration-300
+                className={`w-full px-8 py-3 text-xl leading-relaxed text-center rounded-full outline-none transition-all duration-300
                   bg-white text-slate-700 font-bold
                   shadow-[inset_0_4px_8px_rgba(0,0,0,0.1),0_8px_20px_rgba(0,0,0,0.15)]
                   focus:shadow-[inset_0_4px_8px_rgba(0,0,0,0.05),0_0_0_4px_rgba(251,191,36,0.3)]

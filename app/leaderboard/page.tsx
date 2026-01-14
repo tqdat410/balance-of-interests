@@ -89,8 +89,13 @@ export default function LeaderboardPage() {
   }, [fetchLeaderboard]);
 
   const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    }
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
@@ -273,30 +278,35 @@ export default function LeaderboardPage() {
                         <h3 className="text-lg md:text-xl font-black text-slate-800 truncate w-full max-w-[200px] md:max-w-xs leading-tight">
                           {entry.name}
                         </h3>
-                        <p className="text-slate-500 text-xs font-bold mt-0.5">
-                          {new Date(entry.created_at).toLocaleDateString('vi-VN')}
+                        <p className="text-slate-500 text-sm font-bold mt-0.5">
+                          {(() => {
+                            const d = new Date(entry.created_at);
+                            const time = d.toLocaleTimeString('vi-VN', { hour12: false });
+                            const date = d.toLocaleDateString('vi-VN');
+                            return `${time} ${date}`;
+                          })()}
                         </p>
                       </div>
 
                       {/* Key Stats - Minimalist Layout */}
                       <div className="flex items-center justify-center gap-6 md:gap-10 w-full md:w-auto mt-2 md:mt-0">
                         
-                        {/* Total Actions */}
-                        <div className="flex flex-col items-center">
-                          <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider mb-0.5">Hành động</span>
-                          <span className="text-xl font-black text-blue-600 leading-none">{entry.total_action}</span>
-                        </div>
-
                         {/* Round */}
                         <div className="flex flex-col items-center">
-                          <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider mb-0.5">Vòng</span>
-                          <span className="text-xl font-black text-purple-600 leading-none">{entry.final_round}<span className="text-sm text-purple-300">/30</span></span>
+                          <span className="text-[12px] font-bold text-purple-400 uppercase tracking-wider mb-0.5">Vòng</span>
+                          <span className="text-2xl font-black text-purple-600 leading-none">{entry.final_round}<span className="text-xl text-purple-300">/30</span></span>
+                        </div>
+
+                        {/* Total Actions */}
+                        <div className="flex flex-col items-center">
+                          <span className="text-[12px] font-bold text-blue-400 uppercase tracking-wider mb-0.5">Hành động</span>
+                          <span className="text-2xl font-black text-blue-600 leading-none">{entry.total_action}</span>
                         </div>
 
                         {/* Time */}
                         <div className="flex flex-col items-center min-w-[60px]">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Thời gian</span>
-                          <span className="text-base font-bold text-slate-600 leading-none">{formatDuration(entry.duration)}</span>
+                          <span className="text-[12px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Thời gian</span>
+                          <span className="text-xl font-bold text-slate-600 leading-none">{formatDuration(entry.duration)}</span>
                         </div>
                       </div>
                     </div>

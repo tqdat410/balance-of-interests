@@ -128,6 +128,14 @@ export async function POST(request: NextRequest) {
       ending: payload.ending,
     };
 
+    // Log payload for debugging
+    console.log("Submitting Score Payload:", {
+      session_id: payload.session_id,
+      name,
+      final_round: payload.final_round,
+      ending: payload.ending
+    });
+
     const { data, error } = await supabase
       .from("game_records")
       .insert(insertData)
@@ -135,9 +143,9 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error("Supabase insert error:", error.message);
+      console.error("Supabase insert error details:", error);
       return NextResponse.json(
-        { success: false, error: "Failed to save score" },
+        { success: false, error: `Database Error: ${error.message}` },
         { status: 500 }
       );
     }
