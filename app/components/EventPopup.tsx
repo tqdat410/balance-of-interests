@@ -10,6 +10,8 @@ interface EventData {
   negativeEffects?: Record<string, number>;
   isSpecialEvent?: boolean;
   entity?: string;
+  rerollReward?: boolean;
+  isSkippable?: boolean;
 }
 
 interface Props {
@@ -17,6 +19,7 @@ interface Props {
   onContinue: () => void;
   onExecute?: () => void;
   onSkip?: () => void;
+  onAccept?: () => void;
   round?: number;
 }
 
@@ -46,8 +49,10 @@ const EventPopup: React.FC<Props> = ({
   onContinue,
   onExecute,
   onSkip,
+  onAccept,
 }) => {
   const isSpecial = event.isSpecialEvent;
+  const isSkippable = event.isSkippable;
 
   const getOriginalEffects = (originalEffects: Record<string, number>) => {
     return { ...originalEffects };
@@ -120,9 +125,17 @@ const EventPopup: React.FC<Props> = ({
           <div className="flex items-center gap-4 px-4 pb-4 xl:px-5 xl:pb-5">
             {/* Left: Effects */}
             <div className="flex-1 flex items-center gap-3 flex-wrap">
+              {/* Reroll Reward Badge - Show for both Special and Regular if exists */}
+              {event.rerollReward && (
+                 <span className="px-3 py-1.5 rounded-xl text-sm font-bold bg-indigo-100/80 text-indigo-700 flex items-center gap-1.5 border border-indigo-200">
+                    <span>🎲</span>
+                    +1 Lượt đổi bài
+                 </span>
+              )}
+
               {/* Outcomes indicator for Special Events */}
               {isSpecial && (
-                <span className="text-sm text-slate-600 font-medium">
+                <span className="text-sm text-slate-600 font-medium ml-1">
                   <span className="text-green-600">✓ Thành công</span>
                   {" / "}
                   <span className="text-red-600">✗ Thất bại</span>
@@ -191,7 +204,7 @@ const EventPopup: React.FC<Props> = ({
               {isSpecial ? (
                 <>
                   <button
-                    onClick={onSkip || onContinue}
+                    onClick={onSkip}
                     className="py-2.5 px-6 rounded-2xl font-bold text-sm text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95"
                     style={{
                       background: "rgba(241, 245, 249, 0.9)",
@@ -202,14 +215,41 @@ const EventPopup: React.FC<Props> = ({
                     Bỏ qua
                   </button>
                   <button
-                    onClick={onExecute || onContinue}
-                    className="py-2.5 px-6 rounded-2xl font-bold text-sm text-white transition-all duration-200 hover:scale-105 active:scale-95"
+                    onClick={onExecute}
+                    className="py-2.5 px-6 rounded-2xl font-bold text-sm text-white transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-2"
                     style={{
                       background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
                       boxShadow: "4px 4px 12px rgba(139,92,246,0.35), -2px -2px 8px rgba(255,255,255,0.15)",
                     }}
                   >
                     Thực hiện
+                    {event.rerollReward && (
+                      <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] leading-none">+1 Đổi bài</span>
+                    )}
+                  </button>
+                </>
+              ) : isSkippable ? (
+                <>
+                  <button
+                    onClick={onSkip}
+                    className="py-2.5 px-6 rounded-2xl font-bold text-sm text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95"
+                    style={{
+                      background: "rgba(241, 245, 249, 0.9)",
+                      boxShadow: "4px 4px 12px rgba(0,0,0,0.1), -2px -2px 8px rgba(255,255,255,0.9)",
+                      border: "1px solid rgba(255,255,255,0.8)"
+                    }}
+                  >
+                    Bỏ qua
+                  </button>
+                  <button
+                    onClick={onAccept}
+                    className="py-2.5 px-6 rounded-2xl font-bold text-sm text-white transition-all duration-200 hover:scale-105 active:scale-95"
+                    style={{
+                      background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                      boxShadow: "4px 4px 12px rgba(16,185,129,0.35), -2px -2px 8px rgba(255,255,255,0.15)",
+                    }}
+                  >
+                    Chấp nhận
                   </button>
                 </>
               ) : (

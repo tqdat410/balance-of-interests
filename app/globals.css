@@ -1218,3 +1218,15 @@ button:disabled,
 .card-stagger-1 { animation-delay: 0s; }
 .card-stagger-2 { animation-delay: 0.1s; }
 .card-stagger-3 { animation-delay: 0.2s; }
+
+/* Reroll Shuffle Animation */
+@keyframes rerollShuffle {
+  0% { transform: translateY(0); opacity: 1; }
+  25% { transform: translateY(-10px); opacity: 0; }
+  50% { transform: translateY(10px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.animate-rerollShuffle {
+  animation: rerollShuffle 0.5s ease-in-out;
+}

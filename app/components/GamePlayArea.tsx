@@ -31,6 +31,8 @@ interface GamePlayAreaProps {
   handleAction: (action: GameAction) => void;
   eventMessage: string | null;
   handleActionComplete: () => void;
+  rerollCount: number;
+  onReroll: () => void;
 }
 
 export default function GamePlayArea({
@@ -44,6 +46,8 @@ export default function GamePlayArea({
   handleAction,
   eventMessage,
   handleActionComplete,
+  rerollCount,
+  onReroll,
 }: GamePlayAreaProps) {
   return (
     <div className="w-full h-full flex flex-col">
@@ -96,6 +100,8 @@ export default function GamePlayArea({
                   entity={currentEntity}
                   onActionComplete={handleActionComplete}
                   round={round}
+                  rerollCount={rerollCount}
+                  onReroll={onReroll}
                 />
               </div>
             </>
@@ -128,6 +134,8 @@ export default function GamePlayArea({
               entity={currentEntity}
               onActionComplete={handleActionComplete}
               round={round}
+              rerollCount={rerollCount}
+              onReroll={onReroll}
             />
           </div>
         )}

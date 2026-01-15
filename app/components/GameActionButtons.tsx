@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { Entity, GameAction, ActionEffect } from "@/lib/types";
+import React, { useState, useCallback } from "react";
+import { Entity, GameAction } from "@/lib/types";
 
 interface Props {
   actions: GameAction[];
@@ -10,6 +10,8 @@ interface Props {
   entity: Entity;
   onActionComplete?: () => void;
   round?: number;
+  rerollCount: number;
+  onReroll: () => void;
 }
 
 const LABELS: Record<Entity, string> = {
@@ -49,6 +51,8 @@ const GameActionButtons: React.FC<Props> = ({
   entity,
   onActionComplete,
   round = 1,
+  rerollCount,
+  onReroll,
 }) => {
   const [clickedAction, setClickedAction] = useState<string | null>(null);
 
@@ -95,6 +99,14 @@ const GameActionButtons: React.FC<Props> = ({
     },
     [handleAction, clickedAction, onActionComplete]
   );
+
+  // Reroll button styles (Claymorphism)
+  const rerollStyles = {
+    bg: "bg-amber-100",
+    text: "text-amber-800",
+    border: "border-amber-200",
+    shadow: "shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),inset_-2px_-2px_4px_rgba(0,0,0,0.05),2px_2px_5px_rgba(0,0,0,0.05)]"
+  };
 
   return (
     <div className="action-buttons-container w-full flex flex-row flex-wrap justify-center gap-6 xl:gap-10 items-start mt-4">
@@ -188,6 +200,69 @@ const GameActionButtons: React.FC<Props> = ({
           </button>
         );
       })}
+
+      {/* Reroll Button - Same Dimensions as Cards */}
+      <button
+        onClick={onReroll}
+        disabled={rerollCount === 0 || !!eventMessage || clickedAction !== null}
+        className={`
+          group relative
+          flex flex-col items-center justify-center
+          w-[24vh] max-w-[220px] min-w-[140px]
+          aspect-[9/16] 
+          rounded-3xl
+          transition-all duration-300 ease-out
+          animate-idleZoom
+          p-4
+          ${rerollStyles.bg}
+          ${rerollStyles.shadow}
+          border-2 ${rerollStyles.border}
+          ${
+            rerollCount > 0 && !eventMessage && clickedAction === null
+              ? "hover:-translate-y-2 cursor-pointer hover:brightness-105"
+              : "opacity-60 grayscale cursor-not-allowed"
+          }
+        `}
+        style={{
+          "--idle-scale": 1.03,
+          animationDelay: "1s",
+          animationDuration: "6s",
+        } as React.CSSProperties}
+      >
+        {/* Badge */}
+        <div className="absolute top-4 right-4 bg-red-500 text-white text-base font-black rounded-full w-8 h-8 flex items-center justify-center shadow-lg z-10">
+          {rerollCount}
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-col items-center gap-4 z-10">
+          {/* SVG Icon - Refresh/Dice */}
+          <div className={`p-4 rounded-full bg-white/40 backdrop-blur-sm shadow-inner ${rerollCount > 0 && !eventMessage && clickedAction === null ? "group-hover:rotate-180 transition-transform duration-700 ease-in-out" : ""}`}>
+             <svg 
+               xmlns="http://www.w3.org/2000/svg" 
+               className={`w-12 h-12 ${rerollStyles.text}`} 
+               fill="none" 
+               viewBox="0 0 24 24" 
+               stroke="currentColor" 
+               strokeWidth={2.5}
+             >
+               <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+             </svg>
+          </div>
+          
+          <span className={`text-xl font-black uppercase tracking-wider ${rerollStyles.text}`}>
+            Đổi bài
+          </span>
+          
+          <div className="text-xs font-medium text-amber-700/70 text-center px-2">
+            Thay đổi danh sách hành động hiện tại
+          </div>
+        </div>
+        
+        {/* Decorative background elements */}
+        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/20 rounded-full blur-2xl" />
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-yellow-300/20 rounded-full blur-2xl" />
+      </button>
     </div>
   );
 };

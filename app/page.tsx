@@ -38,6 +38,9 @@ export default function BalanceOfInterests() {
     handleEventContinue,
     handleEventSkip,
     handleEventExecute,
+    handleEventAccept,
+    handleReroll,
+    rerollCount,
     handleAction,
     handleActionComplete,
     availableActions,
@@ -115,6 +118,8 @@ export default function BalanceOfInterests() {
             handleAction={handleAction}
             eventMessage={eventMessage}
             handleActionComplete={handleActionComplete}
+            rerollCount={rerollCount}
+            onReroll={handleReroll}
           />
         </div>
 
@@ -128,6 +133,7 @@ export default function BalanceOfInterests() {
             onContinue={handleEventContinue}
             onSkip={handleEventSkip}
             onExecute={handleEventExecute}
+            onAccept={handleEventAccept}
             round={round}
           />
         )}
