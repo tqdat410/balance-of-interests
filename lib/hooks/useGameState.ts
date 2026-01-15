@@ -31,6 +31,10 @@ export function useGameState() {
   const [currentEvent, setCurrentEvent] = useState<GameEvent | null>(null);
   const [showEventPopup, setShowEventPopup] = useState(false);
   
+  // Reroll System
+  const [rerollCount, setRerollCount] = useState<number>(1);
+  const [rerollTrigger, setRerollTrigger] = useState<number>(0);
+  
   // UI States
   const [startButtonAnimating, setStartButtonAnimating] = useState(false);
   const [startClickAnimation, setStartClickAnimation] = useState<string | null>(null);
@@ -279,6 +283,8 @@ export function useGameState() {
       setTotalActions(0);
       setCompletedRound(0);
       setIsProcessingTurn(false);
+      setRerollCount(1);
+      setRerollTrigger(0);
       submitScoreRef.current = false;
       startNewRound(1);
 
@@ -336,6 +342,28 @@ export function useGameState() {
     setCurrentEvent(null);
   };
 
+  const handleEventAccept = () => {
+    if (currentEvent && currentEvent.effects) {
+      applyEffects(
+        currentEvent.effects,
+        `Sự kiện: ${currentEvent.name}`,
+        "Event"
+      );
+      if (currentEvent.rerollReward) {
+        setRerollCount((prev) => prev + 1);
+      }
+    }
+    setShowEventPopup(false);
+    setCurrentEvent(null);
+  };
+
+  const handleReroll = useCallback(() => {
+    if (rerollCount > 0) {
+      setRerollCount((prev) => prev - 1);
+      setRerollTrigger((prev) => prev + 1);
+    }
+  }, [rerollCount]);
+
   const handleEventExecute = () => {
     if (currentEvent && currentEvent.isSpecialEvent) {
       const isSuccess = Math.random() < 0.1;
@@ -350,6 +378,11 @@ export function useGameState() {
           currentEvent.entity || "Event"
         );
       }
+      
+      if (currentEvent.rerollReward) {
+        setRerollCount((prev) => prev + 1);
+      }
+
       // Count special event execute as an action
       setTotalActions((prev) => prev + 1);
     }
@@ -431,7 +464,7 @@ export function useGameState() {
       return shuffled.slice(0, Math.min(2, shuffled.length));
     }
     return shuffled.slice(0, Math.min(3, shuffled.length));
-  }, [currentEntity, round]);
+  }, [currentEntity, round, rerollTrigger]);
 
   return {
     gameState,
@@ -459,7 +492,10 @@ export function useGameState() {
     startGame,
     handleEventContinue,
     handleEventSkip,
+    handleEventAccept,
     handleEventExecute,
+    handleReroll,
+    rerollCount,
     handleAction,
     handleActionComplete,
     availableActions,

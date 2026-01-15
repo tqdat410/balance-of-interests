@@ -28,6 +28,8 @@ export interface GameEvent {
   negativeEffects?: ActionEffect;
   isSpecialEvent?: boolean;
   entity?: Entity;
+  rerollReward?: boolean;
+  isSkippable?: boolean;
 }
 
 // Game log entry

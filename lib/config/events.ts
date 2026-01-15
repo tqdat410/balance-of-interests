@@ -11,11 +11,14 @@ export const EVENTS: Record<number, GameEvent> = {
     negativeEffects: { Government: 0, Businesses: 0, Workers: -20 },
     isSpecialEvent: true,
     entity: "Workers",
+    rerollReward: true,
   },
   10: {
     name: "Thiên Tai",
     imageUrl: `${CLOUDINARY_BASE}/${OPT_EVENT}/v1768308254/db_thien-tai_ocv2f4.png`,
     effects: { Government: -10, Businesses: -10, Workers: -10 },
+    rerollReward: true,
+    isSkippable: true,
   },
   15: {
     name: "Đầu Tư Sản Phẩm Mới",
@@ -24,11 +27,14 @@ export const EVENTS: Record<number, GameEvent> = {
     negativeEffects: { Government: 0, Businesses: -20, Workers: 0 },
     isSpecialEvent: true,
     entity: "Businesses",
+    rerollReward: true,
   },
   20: {
     name: "Khủng Hoảng Kinh Tế",
     imageUrl: `${CLOUDINARY_BASE}/${OPT_EVENT}/v1768308252/db_khkt_jshyig.png`,
     effects: { Government: -20, Businesses: -20, Workers: -20 },
+    rerollReward: true,
+    isSkippable: true,
   },
   25: {
     name: "Chọn Phe (Quốc Tế)",
@@ -37,11 +43,14 @@ export const EVENTS: Record<number, GameEvent> = {
     negativeEffects: { Government: -30, Businesses: -30, Workers: -30 },
     isSpecialEvent: true,
     entity: "Government",
+    rerollReward: true,
   },
   30: {
     name: "Chiến Tranh",
     imageUrl: `${CLOUDINARY_BASE}/${OPT_EVENT}/v1768308251/db_chien-tranh_k9mgjp.png`,
     effects: { Government: -30, Businesses: -30, Workers: -30 },
+    rerollReward: true,
+    isSkippable: true,
   },
 };
 
