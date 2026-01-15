@@ -332,6 +332,9 @@ export function useGameState() {
         `Sự kiện: ${currentEvent.name}`,
         "Event"
       );
+      if (currentEvent.rerollReward) {
+        setRerollCount((prev) => prev + 1);
+      }
     }
     setShowEventPopup(false);
     setCurrentEvent(null);

@@ -197,7 +197,7 @@ interface GameState {
   // Events
   currentEvent: GameEvent | null;
   showEventPopup: boolean;
-  handleEventContinue: () => void;
+  handleEventContinue: () => void; // Mandatory events: applies effects + grants reroll
   handleEventSkip: () => void;
   handleEventAccept: () => void;
   handleEventExecute: () => void;
@@ -211,6 +211,7 @@ Modal for special events. Glass morphism styling.
 **Features:**
 - **Outcome Indicators:** Shows success/failure effects for special events.
 - **Reroll Rewards:** Badge indicating if event grants +1 Reroll.
+- **Mandatory Events:** Events at rounds 10, 20, 30 are mandatory (must accept effects) but provide reroll rewards.
 - **Glassmorphism:** Uses `glassContainerStyle` with blur effects.
 - **Interactive:** Options to Skip, Accept, or Execute (for special events).
 
@@ -297,7 +298,9 @@ const GAME_CONFIG = {
 
 ### Events (`lib/config/events.ts`)
 
-6 predefined events for milestone rounds.
+6 predefined events for milestone rounds:
+- **Mandatory (10, 20, 30):** Negative effects but grant reroll reward. Handled by `handleEventContinue`.
+- **Special (5, 15, 25):** Choice-based (Skip/Execute) with risk/reward mechanics.
 
 ---
 

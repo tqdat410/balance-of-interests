@@ -127,12 +127,12 @@ interface Action {
 
 ### Event System
 
-Special events occur at rounds 5, 10, 15, 20, 25, 30.
+Fixed events occur at rounds 5, 10, 15, 20, 25, 30.
 
-| Event Type | Probability | Effect |
-|------------|-------------|--------|
-| Regular | 90% | Standard event with choices |
-| Special | 10% | High-impact random event |
+| Rounds | Type | Description |
+|--------|------|-------------|
+| 10, 20, 30 | **Mandatory** | Unavoidable negative effects. Grants +1 Reroll reward. |
+| 5, 15, 25 | **Special** | Choice-based (Skip vs Execute). High risk/reward. |
 
 **Event Count:** 6 predefined events
 
