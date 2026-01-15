@@ -135,6 +135,7 @@ export default function BalanceOfInterests() {
             onExecute={handleEventExecute}
             onAccept={handleEventAccept}
             round={round}
+            bars={bars}
           />
         )}
       </div>

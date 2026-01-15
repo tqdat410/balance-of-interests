@@ -21,12 +21,25 @@ interface Props {
   onSkip?: () => void;
   onAccept?: () => void;
   round?: number;
+  bars: Record<string, number>;
 }
 
 const ENTITY_LABELS: Record<string, string> = {
   Government: "N",
   Businesses: "D", 
   Workers: "L",
+};
+
+const ENTITY_COLORS: Record<string, string> = {
+  Government: "text-red-500",
+  Businesses: "text-blue-600",
+  Workers: "text-green-600",
+};
+
+const ENTITY_BG_COLORS: Record<string, string> = {
+  Government: "bg-red-500",
+  Businesses: "bg-blue-600",
+  Workers: "bg-green-600",
 };
 
 const ENTITY_NAMES: Record<string, string> = {
@@ -50,6 +63,7 @@ const EventPopup: React.FC<Props> = ({
   onExecute,
   onSkip,
   onAccept,
+  bars,
 }) => {
   const isSpecial = event.isSpecialEvent;
   const isSkippable = event.isSkippable;
@@ -58,10 +72,42 @@ const EventPopup: React.FC<Props> = ({
     return { ...originalEffects };
   };
 
+  const MAX_BAR = 50;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 gap-4">
       {/* Backdrop - Glassmorphism blur */}
       <div className="absolute inset-0 bg-black/40 backdrop-blur-md animate-fadeIn" />
+
+      {/* Status Bars - Floating above */}
+      <div 
+        className="relative z-20 flex items-center gap-6 px-6 py-3 rounded-2xl animate-popupScaleIn"
+        style={glassContainerStyle}
+      >
+        {["Government", "Businesses", "Workers"].map((entity) => {
+          const value = bars[entity as keyof typeof bars] || 0;
+          const percent = Math.min(100, (value / MAX_BAR) * 100);
+          
+          return (
+            <div key={entity} className="flex flex-col items-center gap-1 min-w-[60px]">
+              <div className="flex items-center gap-2">
+                <span className={`font-bold ${ENTITY_COLORS[entity]}`}>
+                  {ENTITY_LABELS[entity]}
+                </span>
+                <span className={`font-bold ${ENTITY_COLORS[entity]}`}>
+                  {value}
+                </span>
+              </div>
+              <div className="w-16 h-1.5 bg-slate-200/50 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full ${ENTITY_BG_COLORS[entity]}`}
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Modal - Horizontal 16:9 layout with Glassmorphism */}
       <div 
@@ -223,9 +269,6 @@ const EventPopup: React.FC<Props> = ({
                     }}
                   >
                     Thực hiện
-                    {event.rerollReward && (
-                      <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] leading-none">+1 Đổi bài</span>
-                    )}
                   </button>
                 </>
               ) : isSkippable ? (
