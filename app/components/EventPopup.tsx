@@ -57,6 +57,30 @@ const glassContainerStyle = {
   border: "1px solid rgba(255, 255, 255, 0.6)"
 };
 
+const RecycleIcon = () => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    fill="none" 
+    viewBox="0 0 24 24" 
+    strokeWidth={2.5} 
+    stroke="currentColor" 
+    className="w-3 h-3"
+  >
+    <path 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" 
+    />
+  </svg>
+);
+
+const RerollBadge = () => (
+  <div className="absolute -top-2 -right-2 bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm border border-amber-200 z-10">
+    <span className="font-bold">+</span>
+    <RecycleIcon />
+  </div>
+);
+
 const EventPopup: React.FC<Props> = ({
   event,
   onContinue,
@@ -171,14 +195,6 @@ const EventPopup: React.FC<Props> = ({
           <div className="flex items-center gap-4 px-4 pb-4 xl:px-5 xl:pb-5">
             {/* Left: Effects */}
             <div className="flex-1 flex items-center gap-3 flex-wrap">
-              {/* Reroll Reward Badge - Show for both Special and Regular if exists */}
-              {event.rerollReward && (
-                 <span className="px-3 py-1.5 rounded-xl text-sm font-bold bg-indigo-100/80 text-indigo-700 flex items-center gap-1.5 border border-indigo-200">
-                    <span>🎲</span>
-                    +1 Lượt đổi bài
-                 </span>
-              )}
-
               {/* Outcomes indicator for Special Events */}
               {isSpecial && (
                 <span className="text-sm text-slate-600 font-medium ml-1">
@@ -262,13 +278,14 @@ const EventPopup: React.FC<Props> = ({
                   </button>
                   <button
                     onClick={onExecute}
-                    className="py-2.5 px-6 rounded-2xl font-bold text-sm text-white transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-2"
+                    className="relative py-2.5 px-6 rounded-2xl font-bold text-sm text-white transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-2"
                     style={{
                       background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
                       boxShadow: "4px 4px 12px rgba(139,92,246,0.35), -2px -2px 8px rgba(255,255,255,0.15)",
                     }}
                   >
                     Thực hiện
+                    {event.rerollReward && <RerollBadge />}
                   </button>
                 </>
               ) : isSkippable ? (
@@ -286,25 +303,27 @@ const EventPopup: React.FC<Props> = ({
                   </button>
                   <button
                     onClick={onAccept}
-                    className="py-2.5 px-6 rounded-2xl font-bold text-sm text-white transition-all duration-200 hover:scale-105 active:scale-95"
+                    className="relative py-2.5 px-6 rounded-2xl font-bold text-sm text-white transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-2"
                     style={{
                       background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                       boxShadow: "4px 4px 12px rgba(16,185,129,0.35), -2px -2px 8px rgba(255,255,255,0.15)",
                     }}
                   >
                     Chấp nhận
+                    {event.rerollReward && <RerollBadge />}
                   </button>
                 </>
               ) : (
                 <button
                   onClick={onContinue}
-                  className="py-2.5 px-8 rounded-2xl font-bold text-sm text-white transition-all duration-200 hover:scale-105 active:scale-95"
+                  className="relative py-2.5 px-8 rounded-2xl font-bold text-sm text-white transition-all duration-200 hover:scale-105 active:scale-95"
                   style={{
                     background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
                     boxShadow: "4px 4px 12px rgba(245,158,11,0.35), -2px -2px 8px rgba(255,255,255,0.15)",
                   }}
                 >
                   Chấp nhận!
+                  {event.rerollReward && <RerollBadge />}
                 </button>
               )}
             </div>

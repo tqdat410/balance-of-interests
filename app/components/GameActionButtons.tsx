@@ -55,6 +55,7 @@ const GameActionButtons: React.FC<Props> = ({
   onReroll,
 }) => {
   const [clickedAction, setClickedAction] = useState<string | null>(null);
+  const [isRerolling, setIsRerolling] = useState(false);
 
   // Function to get modified effects based on round
   const getModifiedEffects = (
@@ -100,6 +101,20 @@ const GameActionButtons: React.FC<Props> = ({
     [handleAction, clickedAction, onActionComplete]
   );
 
+  const handleRerollClick = () => {
+    if (isRerolling) return;
+    setIsRerolling(true);
+    
+    // Delay actual reroll to show animation
+    setTimeout(() => {
+      onReroll();
+      // Short delay before showing new cards
+      setTimeout(() => {
+        setIsRerolling(false);
+      }, 150);
+    }, 400);
+  };
+
   // Reroll button styles (Claymorphism)
   const rerollStyles = {
     bg: "bg-amber-100",
@@ -116,7 +131,7 @@ const GameActionButtons: React.FC<Props> = ({
           <button
             key={`${action.name}-${idx}`}
             onClick={() => memoizedHandleAction(action)}
-            disabled={!!eventMessage || clickedAction !== null}
+            disabled={!!eventMessage || clickedAction !== null || isRerolling}
             style={
               {
                 "--idle-scale": 1.02 + ((idx % 4) * 0.01),
@@ -136,7 +151,7 @@ const GameActionButtons: React.FC<Props> = ({
               ${
                 clickedAction === action.name
                   ? "animate-cardSelectExit pointer-events-none"
-                  : clickedAction !== null
+                  : clickedAction !== null || isRerolling
                   ? "opacity-50 scale-95 grayscale cursor-not-allowed"
                   : "hover:-translate-y-2"
               }
@@ -203,8 +218,8 @@ const GameActionButtons: React.FC<Props> = ({
 
       {/* Reroll Button - Same Dimensions as Cards */}
       <button
-        onClick={onReroll}
-        disabled={rerollCount === 0 || !!eventMessage || clickedAction !== null}
+        onClick={handleRerollClick}
+        disabled={rerollCount === 0 || !!eventMessage || clickedAction !== null || isRerolling}
         className={`
           group relative
           flex flex-col items-center justify-center
@@ -218,8 +233,8 @@ const GameActionButtons: React.FC<Props> = ({
           ${rerollStyles.shadow}
           border-2 ${rerollStyles.border}
           ${
-            rerollCount > 0 && !eventMessage && clickedAction === null
-              ? "hover:-translate-y-2 cursor-pointer hover:brightness-105"
+            rerollCount > 0 && !eventMessage && clickedAction === null && !isRerolling
+              ? "hover:-translate-y-2 cursor-pointer"
               : "opacity-60 grayscale cursor-not-allowed"
           }
         `}
@@ -237,7 +252,7 @@ const GameActionButtons: React.FC<Props> = ({
         {/* Content */}
         <div className="flex flex-col items-center gap-4 z-10">
           {/* SVG Icon - Refresh/Dice */}
-          <div className={`p-4 rounded-full bg-white/40 backdrop-blur-sm shadow-inner ${rerollCount > 0 && !eventMessage && clickedAction === null ? "group-hover:rotate-180 transition-transform duration-700 ease-in-out" : ""}`}>
+          <div className={`p-4 rounded-full bg-white/40 backdrop-blur-sm shadow-inner ${rerollCount > 0 && !eventMessage && clickedAction === null && !isRerolling ? "group-hover:rotate-180 transition-transform duration-700 ease-in-out" : ""}`}>
              <svg 
                xmlns="http://www.w3.org/2000/svg" 
                className={`w-12 h-12 ${rerollStyles.text}`} 
@@ -246,12 +261,12 @@ const GameActionButtons: React.FC<Props> = ({
                stroke="currentColor" 
                strokeWidth={2.5}
              >
-               <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+               <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
              </svg>
           </div>
           
           <span className={`text-xl font-black uppercase tracking-wider ${rerollStyles.text}`}>
-            Đổi bài
+            Phương án khác
           </span>
           
           <div className="text-xs font-medium text-amber-700/70 text-center px-2">

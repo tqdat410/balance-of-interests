@@ -1,5 +1,7 @@
 # Codebase Summary
 
+This document provides a high-level overview of the project structure, key components, and their relationships. It is automatically generated and should be updated when significant architectural changes occur.
+
 > **Last Updated:** 2026-01-16  
 > **Total Files:** 35 source files  
 > **Total LOC:** ~4,500
@@ -65,9 +67,9 @@ balance/
 | File | LOC | Description |
 |------|-----|-------------|
 | `ClientLayout.tsx` | ~20 | Client-side wrapper for layout |
-| `EventPopup.tsx` | 319 | Glassmorphism event modal with floating status bar |
+| `EventPopup.tsx` | 338 | Glassmorphism event modal with floating status bar & Reroll rewards |
 | `FAQPopup.tsx` | 90 | Help/rules modal |
-| `GameActionButtons.tsx` | 270 | Action cards, Reroll button, idle/exit animations |
+| `GameActionButtons.tsx` | 285 | Action cards, Reroll button (Amber style), idle/exit animations |
 | `GameControlButtons.tsx` | 190 | FAQ/Settings control buttons |
 | `GameHeader.tsx` | 18 | Mobile header component |
 | `GameOverScreen.tsx` | 80 | Failure end screen |
@@ -143,17 +145,19 @@ page.tsx
 
 ### Key Component Details
 
-#### GameActionButtons (270 LOC)
+#### GameActionButtons (285 LOC)
 
 Visual overhaul in Phase 2. Now includes the "Reroll" feature and enhanced animations.
 
 **Features:**
 - **Action Cards:** Claymorphism style, 9:16 aspect ratio.
-- **Reroll Button:** Dedicated button to refresh actions (cost: 1 reroll point).
+- **Reroll Button:** Dedicated "Phương án khác" button to refresh actions (cost: 1 reroll point).
+  - **Style:** Amber color scheme (`bg-amber-100`, `text-amber-800`) with Claymorphism depth.
+  - **Badge:** Shows current reroll count in a red notification bubble.
 - **Animations:**
   - `animate-idleZoom`: Cards breathe when idle.
   - `animate-cardSelectExit`: Smooth exit animation on selection.
-  - `animate-rerollShuffle`: Shuffle effect when rerolling.
+  - **Grayscale Shuffle:** Visual feedback when rerolling (cards fade, scale down, and turn grayscale).
 
 #### GamePlayArea (146 LOC)
 
@@ -204,16 +208,16 @@ interface GameState {
 }
 ```
 
-#### EventPopup (319 LOC)
+#### EventPopup (338 LOC)
 
 Modal for special events with floating status indicators. Glass morphism styling.
 
 **Features:**
 - **Floating Status Bar:** Displays live Government/Business/Worker bar values above the modal.
 - **Outcome Indicators:** Shows success/failure effects for special events.
-- **Reroll Rewards:** Badge indicating if event grants +1 Reroll.
-- **Mandatory Events:** Events at rounds 10, 20, 30 are mandatory (must accept effects) but provide reroll rewards.
-- **Standardized UI:** Cleaned up button text (Tiếng Việt) and consistent styling.
+- **Reroll Rewards:** 
+  - **Badge:** Amber-styled badge (`+ ♻️`) appears on buttons if the event grants a reroll.
+- **Mandatory Events:** Events at rounds 10, 20, 30 are mandatory (must accept effects) but guaranteed to grant +1 reroll reward.
 - **Glassmorphism:** Uses `glassContainerStyle` with blur effects.
 - **Interactive:** Options to Skip, Accept, or Execute (for special events).
 
