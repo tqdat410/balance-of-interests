@@ -1,6 +1,7 @@
 # Phase 2: UI Components
 
-**Status:** In Progress
+**Status:** Completed
+**Completed:** 260115
 **Estimated Effort:** Medium
 **Depends On:** Phase 1
 
@@ -235,16 +236,16 @@ Apply to action cards container when reroll is triggered (via state or custom ev
 
 ## Verification Checklist
 
-- [ ] Reroll button visible during action selection
-- [ ] Button shows current reroll count
-- [ ] Button disabled when count = 0 or during turn processing
-- [ ] Clicking reroll shuffles cards (visual change)
-- [ ] EventPopup shows "Bo qua" / "Chap nhan!" for events 10, 20, 30
-- [ ] EventPopup shows "+1 reroll" indicator on relevant buttons
-- [ ] Accept on skippable events applies effects AND grants reroll
-- [ ] Skip on skippable events does nothing (no effects, no reroll)
-- [ ] No visual regressions on existing UI
-- [ ] Responsive design maintained
+- [x] Reroll button visible during action selection
+- [x] Button shows current reroll count
+- [x] Button disabled when count = 0 or during turn processing
+- [x] Clicking reroll shuffles cards (visual change)
+- [x] EventPopup shows "Bo qua" / "Chap nhan!" for events 10, 20, 30
+- [x] EventPopup shows "+1 reroll" indicator on relevant buttons
+- [x] Accept on skippable events applies effects AND grants reroll
+- [x] Skip on skippable events does nothing (no effects, no reroll)
+- [x] No visual regressions on existing UI
+- [x] Responsive design maintained
 
 ---
 

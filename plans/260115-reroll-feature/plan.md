@@ -1,7 +1,7 @@
 # Plan: Reroll Feature
 
 **Date:** 2026-01-15  
-**Status:** In Progress  
+**Status:** Completed  
 **Complexity:** Medium  
 **Estimated Phases:** 2
 
@@ -72,7 +72,7 @@ Add reroll functionality to refresh action cards during gameplay. Players start 
 - Update `handleEventSkip()` for skippable events
 - Export new state/handlers
 
-### Phase 2: UI Components (In Progress)
+### Phase 2: UI Components (Completed)
 **File:** `phase-02-ui-components.md`
 
 - Add reroll button to `GameActionButtons.tsx` (or create separate component)
@@ -109,10 +109,10 @@ Add reroll functionality to refresh action cards during gameplay. Players start 
 
 ## Success Criteria
 
-- [ ] Game starts with 1 reroll
-- [ ] Reroll button visible and functional during action selection
-- [ ] Clicking reroll: decrements counter, shuffles cards (may repeat)
-- [ ] Events 5, 15, 25: Execute grants +1 reroll
-- [ ] Events 10, 20, 30: Accept grants +1 reroll, Skip does nothing
-- [ ] Reroll counter persists across rounds
-- [ ] No regressions in existing gameplay
+- [x] Game starts with 1 reroll
+- [x] Reroll button visible and functional during action selection
+- [x] Clicking reroll: decrements counter, shuffles cards (may repeat)
+- [x] Events 5, 15, 25: Execute grants +1 reroll
+- [x] Events 10, 20, 30: Accept grants +1 reroll, Skip does nothing
+- [x] Reroll counter persists across rounds
+- [x] No regressions in existing gameplay

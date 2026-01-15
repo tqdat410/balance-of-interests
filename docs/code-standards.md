@@ -1,322 +1,456 @@
 # Code Standards
 
-## Project Conventions
+> **Last Updated:** 2026-01-15  
+> **Framework:** Next.js 16, React 19, TypeScript
 
-### File Organization
+## Table of Contents
 
-```
-app/
-├── api/                    # API route handlers
-│   └── [endpoint]/
-│       └── route.ts        # HTTP method handlers
-├── components/             # React components
-│   └── ComponentName.tsx   # PascalCase naming
-├── [page]/
-│   └── page.tsx           # Page components
-├── globals.css            # Global styles
-└── layout.tsx             # Root layout
+- [TypeScript Conventions](#typescript-conventions)
+- [React Patterns](#react-patterns)
+- [CSS & Styling Guidelines](#css--styling-guidelines)
+- [Import Organization](#import-organization)
+- [Naming Conventions](#naming-conventions)
+- [File Organization](#file-organization)
+- [Error Handling](#error-handling)
 
-lib/
-└── utilityName.ts         # camelCase utility modules
+---
 
-public/
-├── animation/             # Game images
-├── font/                  # Custom fonts
-└── sound/                 # Audio files
-```
+## TypeScript Conventions
 
-### Naming Conventions
+### Type Definitions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Components | PascalCase | `GameStatusBars.tsx` |
-| Hooks | camelCase with use prefix | `useGameState` |
-| Utilities | camelCase | `gameVerification.ts` |
-| Types | PascalCase | `GameAction`, `Entity` |
-| Constants | SCREAMING_SNAKE | `INITIAL_BARS`, `ENTITIES` |
-| Variables | camelCase | `currentEntity`, `turnOrder` |
-| API routes | kebab-case | `/api/submit-score` |
-
-### TypeScript Standards
-
-**Type Definitions:**
 ```typescript
-// Use type for simple unions/aliases
-type Entity = "Government" | "Businesses" | "Workers";
-type GameState = "menu" | "playing" | "gameOver" | "victory";
-
-// Use interface for object shapes
-interface GameAction {
-  name: string;
-  imageUrl: string;
-  effects: ActionEffect;
+// ✅ Use interfaces for object shapes
+interface GameState {
+  currentRound: number;
+  phase: EntityType;
 }
 
-// Use Record for consistent key-value mappings
-type ActionEffect = Record<Entity, number>;
-type Bars = Record<Entity, number>;
-type ActionPool = Record<Entity, GameAction[]>;
+// ✅ Use type aliases for unions/primitives
+type EntityType = 'gov' | 'bus' | 'wor';
+type Ending = 'HARMONY' | 'SURVIVAL' | 'FAILED';
+
+// ✅ Export types from index.ts barrels
+export type { GameState, EntityType } from './game';
 ```
 
-**Explicit Return Types on Functions:**
-```typescript
-// API handlers
-export async function POST(request: NextRequest): Promise<NextResponse> { }
+### Type Safety
 
-// Utility functions
-export async function generateGameHash(data: HashData): Promise<string> { }
-export function validateTimestamp(ts: number): { valid: boolean; reason?: string } { }
+| Pattern | Usage |
+|---------|-------|
+| Strict mode | Enabled in tsconfig.json |
+| No implicit any | Enforced (with known exceptions) |
+| Null checks | Use optional chaining `?.` |
+| Type guards | For runtime type narrowing |
+
+### Known Type Issues
+
+```typescript
+// StatusLineChart.tsx - ClayDot props uses `any`
+// TODO: Define proper ClayDot interface
+const ClayDot = (props: any) => { ... }
 ```
 
-### React Patterns
+### Generics
 
-**Component Structure:**
 ```typescript
-"use client";  // Client components when needed
+// API response wrapper
+interface ApiResponse<T> {
+  data: T;
+  error?: string;
+}
 
-import React, { useState, useEffect, useMemo } from "react";
-import ComponentA from "./components/ComponentA";
+// Hook with generic state
+function useLocalStorage<T>(key: string, initial: T): [T, (v: T) => void]
+```
 
-// Types at top
+---
+
+## React Patterns
+
+### Component Structure
+
+```typescript
+// Component file structure
+'use client';  // Client component directive (if needed)
+
+import { ... } from 'react';
+import { ... } from './local';
+
 interface Props {
-  propA: string;
-  onAction: () => void;
+  // Props interface
 }
 
-// Component
-export default function ComponentName({ propA, onAction }: Props) {
-  // State declarations
-  const [state, setState] = useState<Type>(initialValue);
-
-  // Effects
-  useEffect(() => { }, [dependencies]);
-
-  // Memoized values
-  const computed = useMemo(() => { }, [dependencies]);
-
-  // Handlers
-  const handleAction = () => { };
-
-  // Render
+export function ComponentName({ prop1, prop2 }: Props) {
+  // 1. Hooks
+  const [state, setState] = useState();
+  
+  // 2. Derived values
+  const computed = useMemo(() => ..., [deps]);
+  
+  // 3. Effects
+  useEffect(() => { ... }, [deps]);
+  
+  // 4. Handlers
+  const handleClick = () => { ... };
+  
+  // 5. Render
   return <div>...</div>;
 }
 ```
 
-**Event Communication:**
-```typescript
-// Dispatch custom events for component communication
-window.dispatchEvent(new CustomEvent("eventName", {
-  detail: { key: value }
-}));
+### Hook Patterns
 
-// Listen for events
-useEffect(() => {
-  const handler = (e: CustomEvent) => { };
-  window.addEventListener("eventName", handler as EventListener);
-  return () => window.removeEventListener("eventName", handler as EventListener);
-}, []);
+```typescript
+// ✅ Single custom hook for complex state
+export function useGameState() {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  // All game logic encapsulated
+  return { ...state, actions };
+}
+
+// ✅ Memoized callbacks
+const handleAction = useCallback((action: Action) => {
+  // ...
+}, [dependencies]);
+
+// ✅ Memoized expensive computations
+const availableActions = useMemo(() => {
+  return actions.filter(a => a.entity === phase);
+}, [actions, phase]);
 ```
 
-### API Route Standards
+### Dynamic Imports
 
-**Edge Runtime:**
 ```typescript
-import { NextRequest, NextResponse } from "next/server";
+// Code splitting for heavy components
+const StatusLineChart = dynamic(
+  () => import('./StatusLineChart'),
+  { 
+    loading: () => <LoadingPlaceholder />,
+    ssr: false  // Client-only for Recharts
+  }
+);
+```
 
-// Enable Edge Runtime for all API routes
-export const runtime = "edge";
+### State Management
 
-export async function POST(request: NextRequest) {
+| Pattern | When to Use |
+|---------|-------------|
+| useState | Simple local state |
+| useReducer | Complex state with multiple actions |
+| Custom hook | Shared logic across components |
+| Context | Rare - only for truly global state |
+
+### Event Handlers
+
+```typescript
+// ✅ Inline for simple cases
+<button onClick={() => setOpen(true)}>Open</button>
+
+// ✅ Named handler for complex logic
+const handleSubmit = async (e: FormEvent) => {
+  e.preventDefault();
+  await submitScore(data);
+};
+<form onSubmit={handleSubmit}>
+```
+
+---
+
+## CSS & Styling Guidelines
+
+### Design System: Claymorphism
+
+The project uses a custom Claymorphism design system.
+
+**Design Tokens** (`lib/styles/clay-tokens.css`):
+
+```css
+:root {
+  /* Colors */
+  --clay-bg: #f0e6d3;
+  --clay-surface: #fff8e7;
+  --clay-gov: #ef4444;
+  --clay-bus: #3b82f6;
+  --clay-wor: #22c55e;
+  
+  /* Shadows */
+  --clay-shadow-sm: 4px 4px 8px rgba(0,0,0,0.1);
+  --clay-shadow-md: 8px 8px 16px rgba(0,0,0,0.15);
+  
+  /* Border radius */
+  --clay-radius-sm: 12px;
+  --clay-radius-md: 20px;
+  --clay-radius-lg: 32px;
+}
+```
+
+### Tailwind Usage
+
+```tsx
+// ✅ Utility-first approach
+<div className="flex items-center gap-4 p-6 rounded-clay-md bg-clay-surface">
+
+// ✅ Responsive variants
+<div className="text-sm md:text-base lg:text-lg">
+
+// ✅ State variants
+<button className="hover:scale-105 active:scale-95 transition-transform">
+```
+
+### Animation Classes
+
+30+ custom animations in `globals.css`:
+
+| Animation | Duration | Usage |
+|-----------|----------|-------|
+| `animate-fade-in` | 300ms | Element entry |
+| `animate-slide-up` | 400ms | Modal entry |
+| `animate-pulse-soft` | 2s | Attention indicator |
+| `animate-bounce-soft` | 1s | Interactive elements |
+| `animate-shake` | 500ms | Error feedback |
+
+```css
+/* Animation example */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 300ms ease-out forwards;
+}
+```
+
+### Component Classes
+
+```css
+/* Claymorphism card */
+.clay-card {
+  background: var(--clay-surface);
+  border-radius: var(--clay-radius-md);
+  box-shadow: var(--clay-shadow-md);
+  border: 2px solid rgba(0,0,0,0.05);
+}
+
+/* Glass morphism overlay */
+.glass-overlay {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+```
+
+### Responsive Breakpoints
+
+| Breakpoint | Width | Usage |
+|------------|-------|-------|
+| `sm` | 640px | Small tablets |
+| `md` | 768px | Tablets |
+| `lg` | 1024px | Desktop |
+| `xl` | 1280px | Large desktop |
+
+---
+
+## Import Organization
+
+### Order
+
+```typescript
+// 1. React/Next.js imports
+import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
+// 2. External libraries
+import { LineChart, Line } from 'recharts';
+
+// 3. Internal absolute imports
+import { useGameState } from '@/lib/hooks/useGameState';
+import { GAME_CONFIG } from '@/lib/config';
+import type { GameState, Action } from '@/lib/types';
+
+// 4. Relative imports
+import { GameActionButtons } from './GameActionButtons';
+
+// 5. Styles (if any)
+import styles from './Component.module.css';
+```
+
+### Path Aliases
+
+```json
+// tsconfig.json
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }
+}
+```
+
+```typescript
+// ✅ Use aliases for lib imports
+import { useGameState } from '@/lib/hooks/useGameState';
+
+// ✅ Use relative for co-located files
+import { SubComponent } from './SubComponent';
+```
+
+### Barrel Exports
+
+```typescript
+// lib/types/index.ts
+export * from './game';
+export * from './database';
+
+// lib/config/index.ts
+export { GAME_CONFIG } from './game';
+export { GOV_ACTIONS, BUS_ACTIONS, WOR_ACTIONS } from './actions';
+export { EVENTS } from './events';
+```
+
+---
+
+## Naming Conventions
+
+### Files & Directories
+
+| Type | Convention | Example |
+|------|------------|---------|
+| Components | PascalCase | `GameActionButtons.tsx` |
+| Hooks | camelCase with use prefix | `useGameState.ts` |
+| Utilities | camelCase | `gameVerification.ts` |
+| Config | camelCase | `actions.ts` |
+| Types | camelCase | `game.ts` |
+| API routes | kebab-case dirs | `api/submit-score/route.ts` |
+
+### Code Identifiers
+
+| Type | Convention | Example |
+|------|------------|---------|
+| Components | PascalCase | `GamePlayArea` |
+| Functions | camelCase | `handleAction` |
+| Variables | camelCase | `currentRound` |
+| Constants | SCREAMING_SNAKE | `MAX_ROUNDS` |
+| Types/Interfaces | PascalCase | `GameState` |
+| Enums | PascalCase | `EntityType` |
+
+### Props Naming
+
+```typescript
+// ✅ Descriptive boolean props
+interface Props {
+  isOpen: boolean;      // State
+  canSubmit: boolean;   // Capability
+  hasError: boolean;    // Existence
+}
+
+// ✅ Event handler props
+interface Props {
+  onClick: () => void;
+  onSubmit: (data: FormData) => Promise<void>;
+  onClose: () => void;
+}
+```
+
+---
+
+## File Organization
+
+### Component Files
+
+```
+app/components/
+├── GameActionButtons.tsx     # Single component
+├── GamePlayArea.tsx          # Container component
+├── StatusLineChart.tsx       # Chart component
+└── index.ts                  # Barrel export (optional)
+```
+
+### Feature Organization
+
+```
+lib/
+├── config/                   # Static configuration
+│   ├── actions.ts
+│   ├── events.ts
+│   ├── game.ts
+│   └── index.ts
+├── hooks/                    # Custom hooks
+│   └── useGameState.ts
+├── types/                    # Type definitions
+│   ├── game.ts
+│   ├── database.ts
+│   └── index.ts
+└── supabase/                 # Database client
+    └── api.ts
+```
+
+---
+
+## Error Handling
+
+### API Routes
+
+```typescript
+// api/submit-score/route.ts
+export async function POST(request: Request) {
   try {
-    const payload = await request.json();
+    const body = await request.json();
     
     // Validation
-    if (!payload.required_field) {
-      return NextResponse.json(
-        { success: false, error: "Missing field" },
+    if (!body.signature) {
+      return Response.json(
+        { error: 'Missing signature' },
         { status: 400 }
       );
     }
     
-    // Processing
+    // HMAC verification
+    const isValid = verifySignature(body);
+    if (!isValid) {
+      return Response.json(
+        { error: 'Invalid signature' },
+        { status: 403 }
+      );
+    }
     
-    // Success response
-    return NextResponse.json({
-      success: true,
-      data: result
-    });
+    // Success
+    return Response.json({ success: true });
+    
   } catch (error) {
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
+    console.error('Submit error:', error);
+    return Response.json(
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
 ```
 
-**Response Format:**
+### Client Components
+
 ```typescript
-// Success
-{ success: true, data: { ... } }
-{ success: true, data: [...], pagination: { ... } }
-
-// Error
-{ success: false, error: "Error message" }
-```
-
-### Styling Standards
-
-**Tailwind Classes:**
-```tsx
-// Responsive breakpoints
-<div className="md:block hidden">    {/* Desktop only */}
-<div className="md:hidden block">    {/* Mobile only */}
-
-// Color scheme
-className="text-red-500"      // Government
-className="text-blue-500"     // Business
-className="text-green-500"    // Worker
-className="text-amber-500"    // Accent
-
-// Common patterns
-className="glass3d-card"      // Glass morphism card
-className="animate-fadeIn"    // Fade animation
-className="animate-actionPulse" // Action feedback
-```
-
-**Custom CSS Classes (globals.css):**
-```css
-/* Glass morphism styling */
-.glass3d-card { ... }
-.glass3d-positive { ... }
-.glass3d-negative { ... }
-
-/* Animations */
-@keyframes fadeIn { ... }
-@keyframes actionPulse { ... }
-@keyframes jello-vertical { ... }
-
-/* Mobile-specific */
-.mobile-game-container { ... }
-.mobile-status { ... }
-```
-
-### State Management Patterns
-
-**Local State with useState:**
-```typescript
-// Simple values
-const [round, setRound] = useState<number>(1);
-
-// Objects with spread
-const [bars, setBars] = useState<Bars>({ ...INITIAL_BARS });
-
-// Update with callback for derived state
-setBars(prev => ({
-  ...prev,
-  [entity]: Math.max(0, Math.min(50, prev[entity] + effect))
-}));
-```
-
-**Refs for Non-Reactive Values:**
-```typescript
-// Prevent duplicate API calls
-const submitScoreRef = React.useRef(false);
-
-if (submitScoreRef.current) return;
-submitScoreRef.current = true;
-```
-
-### Error Handling
-
-**API Routes:**
-```typescript
-// Specific error responses
-if (!payload.field) {
-  return NextResponse.json(
-    { success: false, error: "Missing required fields" },
-    { status: 400 }
-  );
-}
-
-// Generic errors (hide details)
-return NextResponse.json(
-  { success: false, error: "Invalid request" },
-  { status: 403 }
-);
-```
-
-**Client Side:**
-```typescript
-try {
-  const response = await fetch("/api/endpoint", { ... });
-  const result = await response.json();
-  
-  if (!response.ok || !result.success) {
-    throw new Error(result.error || "Request failed");
+// ✅ Async error handling
+const handleSubmit = async () => {
+  try {
+    setLoading(true);
+    await submitScore(gameData);
+    setSuccess(true);
+  } catch (error) {
+    console.error('Submission failed:', error);
+    setError('Failed to submit score');
+  } finally {
+    setLoading(false);
   }
-} catch (error) {
-  // Silent fail for non-critical (score submission)
-  // Or show user feedback for critical
-}
+};
 ```
 
-### Security Standards
+### Known Gaps
 
-**Never Expose:**
-- Database credentials in client code
-- API secrets in client code
-- Detailed error messages to client
-
-**Always Validate:**
-- All API inputs
-- Game logic consistency
-- Timestamp freshness
-- Hash verification
-
-**Hash Verification Pattern:**
-```typescript
-// Client generates hash
-const hash = await crypto.subtle.digest("SHA-256", dataBuffer);
-
-// Server regenerates and compares
-const expectedHash = await generateGameHash({ ...data, token });
-return expectedHash === providedHash;
-```
-
-### Documentation Standards
-
-**JSDoc for Functions:**
-```typescript
-/**
- * Generate session-specific token for anti-cheat verification
- * @param sessionId - Unique game session identifier
- * @param secret - Server secret (from env)
- * @returns 32-character token string
- */
-export async function generateSessionToken(
-  sessionId: string,
-  secret: string
-): Promise<string> { }
-```
-
-**Inline Comments for Complex Logic:**
-```typescript
-// Apply round-based difficulty modifiers
-if (round >= 11 && round <= 20) {
-  // Reduce effects by 1 for rounds 11-20
-  modifiedEffects[entity] -= 1;
-}
-```
-
-## Anti-Patterns to Avoid
-
-| Avoid | Prefer |
+| Issue | Status |
 |-------|--------|
-| Magic numbers | Named constants (`INITIAL_BARS`) |
-| Large files (>500 LOC) | Extract to custom hooks/components |
-| `any` type | Proper type definitions |
-| Nested ternaries | Early returns or switch |
-| Direct DOM manipulation | React state/refs |
-| Inline styles | Tailwind classes |
-| `console.log` in production | Silent fails or proper logging |
+| No React Error Boundaries | TODO |
+| Limited error UI feedback | Basic alerts only |
+| No Sentry/error tracking | Not implemented |

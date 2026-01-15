@@ -2,7 +2,7 @@
 
 > **Last Updated:** 2026-01-15  
 > **Total Files:** 35 source files  
-> **Total LOC:** ~4,474
+> **Total LOC:** ~4,500
 
 ## Table of Contents
 
@@ -50,7 +50,7 @@ balance/
 |------|-----|---------|
 | `app/page.tsx` | 145 | Main game entry, state orchestration |
 | `app/layout.tsx` | ~30 | Root layout, font loading, metadata |
-| `app/globals.css` | ~1200 | Tailwind imports, 30+ animations |
+| `app/globals.css` | ~1230 | Tailwind, 40+ animations (rerollShuffle, idleZoom, screen transitions) |
 | `app/leaderboard/page.tsx` | 322 | Standalone leaderboard view |
 
 ### API Routes
@@ -65,13 +65,13 @@ balance/
 | File | LOC | Description |
 |------|-----|-------------|
 | `ClientLayout.tsx` | ~20 | Client-side wrapper for layout |
-| `EventPopup.tsx` | 236 | Event modal with glass effects |
+| `EventPopup.tsx` | 276 | Glassmorphism event modal with outcome indicators |
 | `FAQPopup.tsx` | 90 | Help/rules modal |
-| `GameActionButtons.tsx` | 195 | Action cards with hover animations |
+| `GameActionButtons.tsx` | 270 | Action cards, Reroll button, idle/exit animations |
 | `GameControlButtons.tsx` | 190 | FAQ/Settings control buttons |
 | `GameHeader.tsx` | 18 | Mobile header component |
 | `GameOverScreen.tsx` | 80 | Failure end screen |
-| `GamePlayArea.tsx` | 138 | Main gameplay container |
+| `GamePlayArea.tsx` | 146 | Responsive container: Chart (Desktop) / Cards (Mobile) |
 | `GameStatus.tsx` | 26 | Mobile status display |
 | `GameStatusBars.tsx` | 133 | Vertical bars (legacy, desktop) |
 | `LeaderboardTable.tsx` | ~150 | Leaderboard table component |
@@ -131,9 +131,8 @@ page.tsx
 ├── GamePlayArea
 │   ├── GameHeader (mobile)
 │   ├── GameStatus (mobile)
-│   ├── GameStatusBars (legacy desktop)
 │   ├── StatusLineChart (desktop)
-│   ├── GameActionButtons
+│   ├── GameActionButtons (cards + reroll)
 │   └── GameControlButtons
 │       ├── FAQPopup
 │       └── SettingsPopup
@@ -144,6 +143,26 @@ page.tsx
 
 ### Key Component Details
 
+#### GameActionButtons (270 LOC)
+
+Visual overhaul in Phase 2. Now includes the "Reroll" feature and enhanced animations.
+
+**Features:**
+- **Action Cards:** Claymorphism style, 9:16 aspect ratio.
+- **Reroll Button:** Dedicated button to refresh actions (cost: 1 reroll point).
+- **Animations:**
+  - `animate-idleZoom`: Cards breathe when idle.
+  - `animate-cardSelectExit`: Smooth exit animation on selection.
+  - `animate-rerollShuffle`: Shuffle effect when rerolling.
+
+#### GamePlayArea (146 LOC)
+
+Main layout container acting as the "board".
+
+**Responsive Layout:**
+- **Desktop:** Splits screen between `StatusLineChart` (top/center) and `GameActionButtons` (bottom).
+- **Mobile:** Vertical stack with `GameHeader`, `GameStatus`, and `GameActionButtons`.
+
 #### StatusLineChart (589 LOC)
 
 Largest component. Uses Recharts for line chart visualization.
@@ -153,14 +172,6 @@ Largest component. Uses Recharts for line chart visualization.
 - Custom ClayDot tooltip markers
 - Responsive sizing
 - Animation on data update
-
-**Props:**
-```typescript
-interface Props {
-  history: { round: number; gov: number; bus: number; wor: number }[];
-  currentRound: number;
-}
-```
 
 #### useGameState Hook (467 LOC)
 
@@ -193,15 +204,15 @@ interface GameState {
 }
 ```
 
-#### EventPopup (236 LOC)
+#### EventPopup (276 LOC)
 
 Modal for special events. Glass morphism styling.
 
 **Features:**
-- Event description display
-- Multiple choice buttons
-- Animated entry/exit
-- Backdrop blur effect
+- **Outcome Indicators:** Shows success/failure effects for special events.
+- **Reroll Rewards:** Badge indicating if event grants +1 Reroll.
+- **Glassmorphism:** Uses `glassContainerStyle` with blur effects.
+- **Interactive:** Options to Skip, Accept, or Execute (for special events).
 
 ---
 

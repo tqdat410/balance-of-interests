@@ -1,240 +1,281 @@
 # Project Roadmap
 
+> **Last Updated:** 2026-01-15  
+> **Status:** MVP Complete
+
+## Table of Contents
+
+- [Current State](#current-state)
+- [Known Issues](#known-issues)
+- [Technical Debt](#technical-debt)
+- [Future Improvements](#future-improvements)
+- [Phase Recommendations](#phase-recommendations)
+
+---
+
 ## Current State
 
 ### Completed Features
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Core gameplay loop | Done | 30 rounds, 3 entities |
-| Action system | Done | 36 unique actions |
-| Event system | Done | 6 events (3 forced, 3 special) |
-| Leaderboard | Done | Paginated, best-per-session |
-| Anti-cheat | Done | Hash verification |
-| Responsive UI | Done | Desktop + mobile layouts |
-| Audio system | Done | BGM + SFX |
+| Core gameplay loop | ✅ Complete | 30 rounds, 3 entities |
+| Action system | ✅ Complete | 36 actions |
+| Event system | ✅ Complete | 6 milestone events |
+| Difficulty scaling | ✅ Complete | 3 phases |
+| Bar visualization | ✅ Complete | Line chart |
+| Leaderboard | ✅ Complete | Paginated, RPC |
+| Anti-cheat | ✅ Complete | HMAC-SHA256 |
+| Reroll functionality | ✅ Complete | Shuffle actions, event rewards |
+| Audio system | ✅ Complete | Music + SFX |
+| Responsive design | ✅ Complete | Mobile/tablet/desktop |
+| Claymorphism UI | ✅ Complete | Custom design system |
 
-### Code Metrics
+### Metrics
 
-| Metric | Value | Target |
-|--------|-------|--------|
-| Total LOC | ~4,400 | - |
-| Main page.tsx | 1,289 | <500 |
-| Components | 7 | - |
-| Test coverage | 0% | 80%+ |
-| TypeScript strict | Yes | Yes |
+| Metric | Value |
+|--------|-------|
+| Source files | 35 |
+| Total LOC | ~4,474 |
+| Components | 17 |
+| API routes | 2 |
+| Animations | 30+ |
 
-## Improvement Opportunities
+---
+
+## Known Issues
+
+### Critical
+
+None identified.
 
 ### High Priority
 
-#### 1. Refactor Main Page (Tech Debt)
-
-**Problem:** `page.tsx` is 1,289 lines - too large for maintainability
-
-**Solution:** Extract to custom hooks
-
-```typescript
-// Proposed structure
-app/
-├── hooks/
-│   ├── useGameState.ts      // Core state management
-│   ├── useGameActions.ts    // Action handling
-│   ├── useGameEvents.ts     // Event system
-│   ├── useScoreSubmission.ts // Anti-cheat + API
-│   └── useAudioEvents.ts    // Audio coordination
-├── page.tsx                 // <200 lines
-```
-
-**Estimated effort:** 4-6 hours
-
-#### 2. Extract Game Data to Config
-
-**Problem:** Actions and events are hardcoded in component
-
-**Solution:**
-```typescript
-// lib/gameConfig.ts
-export const ACTIONS: ActionPool = { ... };
-export const EVENTS: Record<number, GameEvent> = { ... };
-export const GAME_CONSTANTS = {
-  INITIAL_BARS: { Government: 20, Businesses: 20, Workers: 20 },
-  MAX_BAR: 50,
-  TOTAL_ROUNDS: 30,
-  ROUND_MODIFIERS: { 11: -1, 21: -2 },
-};
-```
-
-**Estimated effort:** 2 hours
-
-#### 3. Add Unit Tests
-
-**Problem:** No test coverage
-
-**Solution:**
-```typescript
-// __tests__/
-├── gameVerification.test.ts  // Hash/validation
-├── gameLogic.test.ts         // Win/lose conditions
-└── components/
-    └── GameStatusBars.test.tsx
-```
-
-**Frameworks:** Vitest + React Testing Library
-
-**Estimated effort:** 8-12 hours
+| Issue | File | Description | Impact |
+|-------|------|-------------|--------|
+| `any` type usage | StatusLineChart.tsx | ClayDot props typed as `any` | Type safety |
+| Large CSS file | globals.css | ~1200 LOC, hard to maintain | Maintainability |
 
 ### Medium Priority
 
-#### 4. Replace Magic Numbers
-
-```typescript
-// Before
-if (round >= 11 && round <= 20) { modifiedEffects[entity] -= 1; }
-
-// After
-const { PHASE_2_START, PHASE_2_MODIFIER } = GAME_CONSTANTS;
-if (round >= PHASE_2_START) { modifiedEffects[entity] += PHASE_2_MODIFIER; }
-```
-
-#### 5. Error Boundary
-
-```tsx
-// app/components/ErrorBoundary.tsx
-export default function ErrorBoundary({ children }) {
-  return (
-    <ErrorBoundaryComponent
-      fallback={<GameErrorFallback />}
-    >
-      {children}
-    </ErrorBoundaryComponent>
-  );
-}
-```
-
-#### 6. Loading States
-
-- Skeleton UI for leaderboard
-- Loading indicator for score submission
-- Optimistic updates
+| Issue | File | Description | Impact |
+|-------|------|-------------|--------|
+| Possibly unused component | GameStatusBars.tsx | May be replaced by StatusLineChart | Dead code |
+| No error boundaries | app/ | React errors crash entire app | UX |
+| No loading states | Various | Missing skeletons/spinners | UX |
 
 ### Low Priority
 
-#### 7. Accessibility Improvements
+| Issue | Description |
+|-------|-------------|
+| No i18n | Hardcoded Vietnamese text |
+| No dark mode | Single theme only |
+| No keyboard shortcuts | Mouse/touch only |
+| No offline support | Requires network |
 
-- ARIA labels on action buttons
-- Keyboard navigation for actions
-- Screen reader announcements for turn changes
-- High contrast mode
-
-#### 8. Analytics Integration
-
-```typescript
-// Track game events
-trackEvent('game_start', { player_name });
-trackEvent('round_complete', { round, bars });
-trackEvent('game_end', { ending, duration });
-```
-
-#### 9. Offline Support
-
-- Service worker for static assets
-- IndexedDB for pending score submissions
-- Retry queue for failed API calls
-
-## Future Features
-
-### Phase 2: Enhanced Gameplay
-
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| Difficulty levels | Easy/Normal/Hard bar ranges | Medium |
-| Daily challenges | Fixed seed games | Low |
-| Achievements | Track milestones | Low |
-| Replay system | Watch previous games | Low |
-
-### Phase 3: Social Features
-
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| Share results | Social media cards | Medium |
-| Session comparison | Compare with friends | Low |
-| Multiplayer mode | Real-time competition | Low |
-
-### Phase 4: Content Expansion
-
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| More actions | Expand pool per entity | Medium |
-| New events | Additional special events | Medium |
-| Localization | English translation | Low |
-| Tutorial mode | Guided first game | Medium |
+---
 
 ## Technical Debt
 
-### Current Issues
+### Code Quality
 
-| Issue | Impact | Effort |
-|-------|--------|--------|
-| Large page.tsx | Hard to maintain | High |
-| No tests | Risk of regression | High |
-| Magic numbers | Hard to tune | Low |
-| Hardcoded data | Config changes need deploy | Low |
-| No error boundary | Crashes show blank page | Medium |
+| Debt Item | Effort | Priority |
+|-----------|--------|----------|
+| Add ClayDot interface types | Low | High |
+| Split globals.css into modules | Medium | Medium |
+| Remove GameStatusBars if unused | Low | Low |
+| Add JSDoc comments to hooks | Medium | Low |
 
-### Recommended Order
+### Testing
 
-1. Extract hooks (unlocks easier testing)
-2. Add unit tests for verification
-3. Extract game config
-4. Add error boundary
-5. Replace magic numbers
+| Debt Item | Effort | Priority |
+|-----------|--------|----------|
+| Add unit tests for useGameState | High | High |
+| Add E2E tests with Playwright | High | Medium |
+| Add API route tests | Medium | Medium |
+| Add component snapshot tests | Medium | Low |
 
-## Performance Optimization
+### Infrastructure
 
-### Current Performance
+| Debt Item | Effort | Priority |
+|-----------|--------|----------|
+| Add error monitoring (Sentry) | Low | High |
+| Add performance monitoring | Medium | Medium |
+| Add database backups | Low | High |
+| Add CI/CD pipeline | Medium | Medium |
+
+---
+
+## Future Improvements
+
+### Short-term (1-2 weeks)
+
+| Feature | Description | Effort |
+|---------|-------------|--------|
+| Error boundaries | Graceful error handling | Low |
+| Loading skeletons | Better perceived performance | Low |
+| Type fixes | Eliminate `any` types | Low |
+| CSS modularization | Split globals.css | Medium |
+
+### Medium-term (1-2 months)
+
+| Feature | Description | Effort |
+|---------|-------------|--------|
+| Multiplayer mode | Real-time PvP | High |
+| Achievement system | Unlock badges | Medium |
+| Tutorial mode | Interactive onboarding | Medium |
+| Replay system | Watch past games | High |
+| Analytics dashboard | Game statistics | Medium |
+
+### Long-term (3+ months)
+
+| Feature | Description | Effort |
+|---------|-------------|--------|
+| Mobile app | React Native port | Very High |
+| Custom scenarios | User-created content | High |
+| AI opponents | Single-player challenges | High |
+| Localization | English, other languages | Medium |
+| Accessibility | Screen reader support | Medium |
+
+---
+
+## Phase Recommendations
+
+### Phase 1: Stabilization (Week 1-2)
+
+**Goal:** Production-ready quality
+
+```
+Priority Tasks:
+1. [ ] Add React Error Boundaries
+2. [ ] Fix TypeScript `any` types
+3. [ ] Add error monitoring (Sentry)
+4. [ ] Add database backup strategy
+5. [ ] Write useGameState unit tests
+```
+
+**Success Criteria:**
+- No `any` types in codebase
+- Error boundaries on all screens
+- 80%+ test coverage on hooks
+
+### Phase 2: Polish (Week 3-4)
+
+**Goal:** Enhanced user experience
+
+```
+Priority Tasks:
+1. [ ] Add loading skeletons
+2. [ ] Split globals.css into modules
+3. [ ] Add keyboard shortcuts
+4. [ ] Improve mobile UX
+5. [ ] Add sound effect variety
+```
+
+**Success Criteria:**
+- Lighthouse score > 90
+- No CSS file > 300 LOC
+- Full keyboard navigation
+
+### Phase 3: Features (Month 2)
+
+**Goal:** Increased engagement
+
+```
+Priority Tasks:
+1. [ ] Achievement system
+2. [ ] Tutorial mode
+3. [ ] Daily challenges
+4. [ ] Social sharing
+5. [ ] Analytics dashboard
+```
+
+**Success Criteria:**
+- 5+ achievements
+- 50%+ tutorial completion
+- 10%+ social shares
+
+### Phase 4: Scale (Month 3+)
+
+**Goal:** Platform expansion
+
+```
+Priority Tasks:
+1. [ ] Multiplayer infrastructure
+2. [ ] Mobile app development
+3. [ ] Localization system
+4. [ ] Custom scenario editor
+5. [ ] AI opponent development
+```
+
+**Success Criteria:**
+- Multiplayer beta launch
+- iOS/Android app in stores
+- 3+ language support
+
+---
+
+## Risk Assessment
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Supabase rate limits | Low | High | Implement caching |
+| Bundle size growth | Medium | Medium | Code splitting, tree shaking |
+| Database scaling | Low | High | Index optimization, archiving |
+| Security vulnerabilities | Low | Critical | Regular audits, updates |
+| Developer availability | Medium | Medium | Documentation, onboarding |
+
+---
+
+## Resource Requirements
+
+### Phase 1-2 (Solo Developer)
+
+- 20-40 hours total
+- No additional infrastructure cost
+
+### Phase 3 (Small Team)
+
+- 1 frontend developer
+- 1 designer (part-time)
+- ~80 hours total
+
+### Phase 4 (Full Team)
+
+- 2 developers
+- 1 designer
+- 1 QA
+- Additional Supabase tier may be needed
+- ~200+ hours
+
+---
+
+## Success Metrics
+
+### Current Targets
 
 | Metric | Current | Target |
 |--------|---------|--------|
-| FCP | ~1.5s | <1s |
-| LCP | ~2.0s | <1.5s |
-| Bundle size | ~150KB | <100KB |
+| Weekly active users | Unknown | 100+ |
+| Games completed/week | Unknown | 500+ |
+| Leaderboard submissions | Unknown | 50+ unique |
+| Average session time | Unknown | 10 min |
+| Survival rate | Unknown | 50% |
 
-### Optimizations
+### Future Targets (Post-Phase 3)
 
-1. **Image Optimization**
-   - Already using Cloudinary
-   - Consider responsive srcsets
+| Metric | Target |
+|--------|--------|
+| Daily active users | 200+ |
+| Achievement unlock rate | 30%+ |
+| Tutorial completion | 50%+ |
+| Returning users (7-day) | 20%+ |
 
-2. **Code Splitting**
-   - Lazy load leaderboard page
-   - Dynamic import for AudioManager
+---
 
-3. **Font Loading**
-   - Subset Vietnamese characters
-   - Font-display: swap
+## Changelog
 
-## Milestones
-
-### v1.0 (Current)
-- Core gameplay
-- Leaderboard
-- Anti-cheat
-- Responsive UI
-
-### v1.1 (Proposed)
-- [ ] Refactor page.tsx to hooks
-- [ ] Extract game config
-- [ ] Add 50%+ test coverage
-- [ ] Error boundary
-
-### v1.2 (Future)
-- [ ] Difficulty levels
-- [ ] Tutorial mode
-- [ ] Share results
-- [ ] Accessibility audit
-
-### v2.0 (Long-term)
-- [ ] Multiplayer mode
-- [ ] Extended action pool
-- [ ] Achievement system
+| Date | Version | Changes |
+|------|---------|---------|
+| 2026-01-15 | 1.1.0 | Added Reroll system (Phase 1 & 2) |
+| 2026-01-15 | 1.0.0 | Initial MVP release |
