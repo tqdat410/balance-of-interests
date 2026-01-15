@@ -1,6 +1,6 @@
 # Project Roadmap
 
-> **Last Updated:** 2026-01-15  
+> **Last Updated:** 2026-01-16  
 > **Status:** MVP Complete
 
 ## Table of Contents
@@ -277,5 +277,6 @@ Priority Tasks:
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2026-01-16 | 1.1.1 | EventPopup UI improvements (floating status bar, text cleanup) |
 | 2026-01-15 | 1.1.0 | Added Reroll system (Phase 1 & 2) |
 | 2026-01-15 | 1.0.0 | Initial MVP release |

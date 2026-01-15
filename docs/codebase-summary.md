@@ -1,6 +1,6 @@
 # Codebase Summary
 
-> **Last Updated:** 2026-01-15  
+> **Last Updated:** 2026-01-16  
 > **Total Files:** 35 source files  
 > **Total LOC:** ~4,500
 
@@ -65,7 +65,7 @@ balance/
 | File | LOC | Description |
 |------|-----|-------------|
 | `ClientLayout.tsx` | ~20 | Client-side wrapper for layout |
-| `EventPopup.tsx` | 276 | Glassmorphism event modal with outcome indicators |
+| `EventPopup.tsx` | 319 | Glassmorphism event modal with floating status bar |
 | `FAQPopup.tsx` | 90 | Help/rules modal |
 | `GameActionButtons.tsx` | 270 | Action cards, Reroll button, idle/exit animations |
 | `GameControlButtons.tsx` | 190 | FAQ/Settings control buttons |
@@ -204,14 +204,16 @@ interface GameState {
 }
 ```
 
-#### EventPopup (276 LOC)
+#### EventPopup (319 LOC)
 
-Modal for special events. Glass morphism styling.
+Modal for special events with floating status indicators. Glass morphism styling.
 
 **Features:**
+- **Floating Status Bar:** Displays live Government/Business/Worker bar values above the modal.
 - **Outcome Indicators:** Shows success/failure effects for special events.
 - **Reroll Rewards:** Badge indicating if event grants +1 Reroll.
 - **Mandatory Events:** Events at rounds 10, 20, 30 are mandatory (must accept effects) but provide reroll rewards.
+- **Standardized UI:** Cleaned up button text (Tiếng Việt) and consistent styling.
 - **Glassmorphism:** Uses `glassContainerStyle` with blur effects.
 - **Interactive:** Options to Skip, Accept, or Execute (for special events).
 
