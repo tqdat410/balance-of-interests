@@ -97,7 +97,7 @@ export default function SettingsPopup({
 
           {/* Feedback Section */}
           <div className="mb-2 pt-4 border-t border-slate-200/50">
-            <span className="text-sm text-slate-600 tracking-wide">version : 2.0.0 - by : </span>
+            <span className="text-sm text-slate-600 tracking-wide">version : 2.1.0 - by : </span>
             <a 
               href="mailto:tqdat410@gmail.com"
               className="text-sm text-slate-600 hover:text-slate-800 underline underline-offset-2"

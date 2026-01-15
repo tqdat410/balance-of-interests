@@ -132,9 +132,17 @@ Fixed events occur at rounds 5, 10, 15, 20, 25, 30.
 | Rounds | Type | Description |
 |--------|------|-------------|
 | 10, 20, 30 | **Mandatory** | Unavoidable negative effects. Grants +1 Reroll reward. |
-| 5, 15, 25 | **Special** | Choice-based (Skip vs Execute). High risk/reward. |
+| 5, 15, 25 | **Special** | Choice-based (Skip vs Execute). High risk/reward. Execute grants +1 Reroll. |
 
 **Event Count:** 6 predefined events
+
+### Reroll Mechanics
+
+- **Initial Count:** Player starts with 1 reroll.
+- **Cost:** 1 reroll point per use.
+- **Effect:** Refreshes the current selection of action cards.
+- **Rewards:** Gained by completing specific events (indicated by an Amber "+" badge).
+- **Visuals:** Reroll action triggers a grayscale shuffle animation.
 
 ### Bar Mechanics
 

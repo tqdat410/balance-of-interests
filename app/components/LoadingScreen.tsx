@@ -14,7 +14,7 @@ const ASSETS = {
     "/background/bg_survived.jpg",
     "/background/bg_harmony.jpg",
     "/background/bg_leaderboard.jpg",
-    "/background/db_loading.png",
+    "/background/db_loading.svg",
 
     // Event Images (Cloudinary)
     "https://res.cloudinary.com/do6szo7zy/image/upload/f_auto,q_auto,ar_16:9,c_fill/v1768308253/db_khoi-nghiep_g4cswk.png",
@@ -230,7 +230,7 @@ export default function LoadingScreen({ onLoadComplete }: LoadingScreenProps) {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center gap-4">
         <img
-          src="/background/db_loading.png"
+          src="/background/db_loading.svg"
           alt="Loading"
           className="w-32 h-32 md:w-48 md:h-48 animate-spin"
           style={{ animationDuration: "3s" }}

@@ -105,8 +105,8 @@ graph TD
 | `MainMenu` | Game start, instructions |
 | `GamePlayArea` | Main gameplay container |
 | `StatusLineChart` | Real-time bar visualization |
-| `GameActionButtons` | Action selection UI |
-| `EventPopup` | Event handling modal |
+| `GameActionButtons` | Action selection UI & Reroll system |
+| `EventPopup` | Event handling modal & Reroll rewards |
 | `VictoryScreen` | Win state, leaderboard submission |
 | `GameOverScreen` | Lose state, retry option |
 
@@ -208,6 +208,7 @@ interface GameState {
   phase: 'gov' | 'bus' | 'wor';   // Current entity turn
   bars: { gov: number; bus: number; wor: number };
   history: HistoryEntry[];
+  rerollCount: number;            // Current reroll points
   
   // Game flow
   gameStatus: 'menu' | 'playing' | 'victory' | 'defeat';
