@@ -49,7 +49,7 @@ export default function BalanceOfInterests() {
   const renderContent = () => {
     if (gameState === "menu") {
       return (
-        <div className="fixed inset-0 w-full h-full overflow-hidden">
+        <div className="fixed inset-0 w-full h-full overflow-y-auto lg:overflow-hidden landscape-scroll">
           <MainMenu
             startGame={startGame}
             validateAndStartGame={validateAndStartGame}
@@ -68,7 +68,7 @@ export default function BalanceOfInterests() {
 
     if (gameState === "gameOver") {
       return (
-        <div className="fixed inset-0 w-full h-full overflow-hidden">
+        <div className="fixed inset-0 w-full h-full overflow-y-auto lg:overflow-hidden landscape-scroll">
           <GameOverScreen
             startGame={startGame}
             startButtonAnimating={startButtonAnimating}
@@ -82,7 +82,7 @@ export default function BalanceOfInterests() {
 
     if (gameState === "victory") {
       return (
-        <div className="fixed inset-0 w-full h-full overflow-hidden">
+        <div className="fixed inset-0 w-full h-full overflow-y-auto lg:overflow-hidden landscape-scroll">
           <VictoryScreen
             startGame={startGame}
             startButtonAnimating={startButtonAnimating}
@@ -98,7 +98,7 @@ export default function BalanceOfInterests() {
     }
 
     return (
-      <div className="h-screen h-[100dvh] w-full bg-[var(--clay-bg)] relative overflow-hidden">
+      <div className="min-h-screen min-h-[100dvh] w-full bg-[var(--clay-bg)] relative overflow-y-auto lg:overflow-hidden landscape-scroll">
         {/* Decorative Circles for Game Screen - responsive sizing */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute -top-20 -left-20 w-96 h-96 xl:w-[500px] xl:h-[500px] bg-blue-200/20 rounded-full blur-3xl" />

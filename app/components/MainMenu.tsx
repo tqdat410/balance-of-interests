@@ -25,7 +25,7 @@ export default function MainMenu({
 }: MainMenuProps) {
   return (
     <div
-      className={`min-h-screen w-full relative overflow-hidden flex items-center justify-center ${
+      className={`min-h-screen w-full relative overflow-y-auto lg:overflow-hidden flex items-center justify-center ${
         menuFadingOut ? "animate-screenFadeOut" : "animate-screenFadeIn"
       }`}
       style={{
@@ -98,9 +98,10 @@ export default function MainMenu({
               className="px-8 py-3 bg-amber-400 text-white rounded-full font-bold text-xl transition-all duration-200
                 shadow-[inset_0_-4px_8px_rgba(0,0,0,0.2),0_6px_12px_rgba(245,158,11,0.3)]
                 hover:-translate-y-0.5 hover:shadow-[inset_0_-4px_8px_rgba(0,0,0,0.2),0_8px_16px_rgba(245,158,11,0.4)]
-                active:translate-y-0.5"
+                active:translate-y-0.5 flex items-center gap-2"
             >
-              🏆 Bảng Xếp Hạng
+              <img src="/background/trophy.svg" alt="Trophy" className="w-6 h-6" />
+              Bảng Xếp Hạng
             </a>
           </div>
         ) : (
@@ -126,9 +127,10 @@ export default function MainMenu({
               className="px-10 py-4 bg-amber-400 text-white rounded-full font-bold text-2xl transition-all duration-200
                 shadow-[inset_0_-4px_8px_rgba(0,0,0,0.2),0_6px_12px_rgba(245,158,11,0.3)]
                 hover:-translate-y-0.5 hover:bg-amber-300 hover:shadow-[inset_0_-4px_8px_rgba(0,0,0,0.2),0_8px_16px_rgba(245,158,11,0.4)]
-                active:translate-y-0.5"
+                active:translate-y-0.5 flex items-center gap-2"
             >
-              🏆 Bảng Xếp Hạng
+              <img src="/background/trophy.svg" alt="Trophy" className="w-7 h-7" />
+              Bảng Xếp Hạng
             </a>
           </div>
         )}

@@ -88,6 +88,8 @@ export interface Database {
         Args: {
           page_number: number;
           page_size: number;
+          date_from?: string | null;
+          date_to?: string | null;
         };
         Returns: LeaderboardRow[];
       };

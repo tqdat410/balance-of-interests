@@ -2,12 +2,14 @@
 
 import React from "react";
 
-interface SettingsPopupProps {
+interface LeaderboardSettingsPopupProps {
   onClose: () => void;
   bgVolume: number;
   setBgVolume: (volume: number) => void;
   sfxVolume: number;
   setSfxVolume: (volume: number) => void;
+  autoRefresh: boolean;
+  setAutoRefresh: (enabled: boolean) => void;
 }
 
 // Glassmorphism style matching leaderboard/event popup
@@ -19,13 +21,15 @@ const glassContainerStyle = {
   border: "1px solid rgba(255, 255, 255, 0.7)"
 };
 
-export default function SettingsPopup({
+export default function LeaderboardSettingsPopup({
   onClose,
   bgVolume,
   setBgVolume,
   sfxVolume,
   setSfxVolume,
-}: SettingsPopupProps) {
+  autoRefresh,
+  setAutoRefresh,
+}: LeaderboardSettingsPopupProps) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop - Glassmorphism blur */}
@@ -92,6 +96,30 @@ export default function SettingsPopup({
                 onChange={(e) => setSfxVolume(parseFloat(e.target.value))}
                 className="w-full h-2 bg-slate-200 rounded-full appearance-none cursor-pointer accent-slate-500"
               />
+            </div>
+          </div>
+
+          {/* Auto Refresh Section */}
+          <div className="mb-5 pt-4 border-t border-slate-200/50">
+            <div className="flex justify-between items-center">
+              <div>
+                <label className="text-sm font-medium text-slate-600">Tự động làm mới</label>
+                <p className="text-xs text-slate-400 mt-0.5">Mỗi 5 giây</p>
+              </div>
+              <button
+                onClick={() => setAutoRefresh(!autoRefresh)}
+                className={`relative w-12 h-6 rounded-full transition-all duration-300 ${
+                  autoRefresh 
+                    ? "bg-amber-500" 
+                    : "bg-slate-300"
+                }`}
+              >
+                <span 
+                  className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-300 ${
+                    autoRefresh ? "left-6" : "left-0.5"
+                  }`}
+                />
+              </button>
             </div>
           </div>
 

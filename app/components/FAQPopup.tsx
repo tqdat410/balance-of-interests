@@ -73,6 +73,25 @@ export default function FAQPopup({ onClose }: FAQPopupProps) {
             <p className="text-slate-500">
               Các sự kiện đặc biệt sẽ xuất hiện ở một số vòng.
             </p>
+
+            <p className="text-slate-500">
+              Dùng các lượt 'Phương án khác' để thay đổi các hành động có thể lựa chọn.
+            </p>
+            <div className="pt-2 border-t border-slate-200/50">
+              <h3 className="text-xs font-bold text-slate-500 mb-1">Cơ chế tính điểm:</h3>
+              <ul className="text-xs text-slate-500 space-y-1 list-disc pl-4">
+                <li>Mỗi lần nhập tên tính là <strong>1 Phiên chơi</strong>.</li>
+                <li>Trong phiên có thể chơi lại nhiều lần, hệ thống sẽ lấy <strong>kết quả cao nhất</strong>.</li>
+                <li>Nhập lại tên ở màn hình chính sẽ tính là phiên chơi mới.</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Version Info */}
+          <div className="mb-3 pt-3 border-t border-slate-200/50 flex flex-col items-start gap-1">
+            <span className="text-xs text-slate-500 font-medium">
+              Version : 2.3.0 - By : <a href="mailto:tqdat410@gmail.com" className="hover:text-slate-600 hover:underline transition-colors">tqdat410@gmail.com</a>
+            </span>
           </div>
 
           {/* Close Button - Subtle */}

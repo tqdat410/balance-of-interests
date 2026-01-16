@@ -208,7 +208,7 @@ export default function LoadingScreen({ onLoadComplete }: LoadingScreenProps) {
         isLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       style={{ 
-        background: "linear-gradient(135deg, #feb2b2 0%, #FEF3E2 25%, #ffffff 50%, #93c5fd 75%, #86efac 100%)" 
+        background: "radial-gradient(circle at center, #fffbeb 0%, #fef3c7 30%, #bbf7d0 60%, #fecaca 100%)"
       }}
     >
       {/* Background Ambient Blobs */}
@@ -235,9 +235,18 @@ export default function LoadingScreen({ onLoadComplete }: LoadingScreenProps) {
           className="w-32 h-32 md:w-48 md:h-48 animate-spin"
           style={{ animationDuration: "3s" }}
         />
-        <div className="text-xl md:text-2xl font-bold text-slate-700 tracking-wider">
-          Đang tải<span className="inline-block w-8 text-left">{dots}</span>
+        
+        {/* Progress Bar - Claymorphism Style */}
+        <div className="w-64 md:w-80 h-4 bg-white/50 rounded-full p-1 shadow-inner backdrop-blur-sm border border-white/60">
+          <div 
+            className="h-full rounded-full bg-gradient-to-r from-blue-400 to-green-400 shadow-sm transition-all duration-300 ease-out relative overflow-hidden"
+            style={{ width: `${progress}%` }}
+          >
+            {/* Glossy effect */}
+            <div className="absolute top-0 left-0 w-full h-[40%] bg-white/40 rounded-full" />
+          </div>
         </div>
+        <span className="text-sm font-bold text-slate-500 mt-1">{progress}%</span>
       </div>
     </div>
   );

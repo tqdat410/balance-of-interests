@@ -124,7 +124,7 @@ const GameActionButtons: React.FC<Props> = ({
   };
 
   return (
-    <div className="action-buttons-container w-full flex flex-row flex-wrap justify-center gap-6 xl:gap-10 items-start mt-4">
+    <div className="action-buttons-container w-full flex flex-row flex-wrap justify-center gap-2 sm:gap-3 lg:gap-6 xl:gap-10 items-start mt-2 lg:mt-4">
       {actions.map((action, idx) => {
         const modifiedEffects = getModifiedEffects(action.effects);
         return (
@@ -142,7 +142,7 @@ const GameActionButtons: React.FC<Props> = ({
             className={`
               group relative
               flex flex-col items-center
-              w-[24vh] max-w-[220px] min-w-[140px]
+              w-[16vh] sm:w-[18vh] md:w-[20vh] lg:w-[24vh] max-w-[140px] sm:max-w-[160px] md:max-w-[180px] lg:max-w-[220px] min-w-[80px] sm:min-w-[100px] md:min-w-[120px] lg:min-w-[140px]
               transition-all duration-300 ease-out
               animate-idleZoom
               bg-transparent
@@ -159,7 +159,7 @@ const GameActionButtons: React.FC<Props> = ({
           >
             {/* Image Container - Aspect 9:16 with Clay Effect - NO Border/Shadow as requested */}
             <div 
-              className="relative w-full aspect-[9/16] rounded-3xl overflow-hidden mb-1 transition-transform duration-300"
+              className="relative w-full aspect-[9/16] rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden mb-1 transition-transform duration-300"
               style={{
                 // Removed border and shadow
                 boxShadow: "none",
@@ -177,7 +177,7 @@ const GameActionButtons: React.FC<Props> = ({
               
               {/* Name Overlay on Hover - Inside Image area for better visibility when name is hidden outside */}
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px]">
-                 <span className="text-white font-bold text-xl text-center px-2 drop-shadow-md transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                 <span className="text-white font-bold text-xs sm:text-sm md:text-base lg:text-xl text-center px-2 drop-shadow-md transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                    {action.name}
                  </span>
               </div>
@@ -216,19 +216,19 @@ const GameActionButtons: React.FC<Props> = ({
         );
       })}
 
-      {/* Reroll Button - Same Dimensions as Cards */}
+      {/* Reroll Button - Same Dimensions as Cards, Responsive */}
       <button
         onClick={handleRerollClick}
         disabled={rerollCount === 0 || !!eventMessage || clickedAction !== null || isRerolling}
         className={`
           group relative
           flex flex-col items-center justify-center
-          w-[24vh] max-w-[220px] min-w-[140px]
+          w-[16vh] sm:w-[18vh] md:w-[20vh] lg:w-[24vh] max-w-[140px] sm:max-w-[160px] md:max-w-[180px] lg:max-w-[220px] min-w-[80px] sm:min-w-[100px] md:min-w-[120px] lg:min-w-[140px]
           aspect-[9/16] 
-          rounded-3xl
+          rounded-xl sm:rounded-2xl lg:rounded-3xl
           transition-all duration-300 ease-out
           animate-idleZoom
-          p-4
+          p-2 lg:p-4
           ${rerollStyles.bg}
           ${rerollStyles.shadow}
           border-2 ${rerollStyles.border}
@@ -245,17 +245,17 @@ const GameActionButtons: React.FC<Props> = ({
         } as React.CSSProperties}
       >
         {/* Badge */}
-        <div className="absolute top-4 right-4 bg-red-500 text-white text-base font-black rounded-full w-8 h-8 flex items-center justify-center shadow-lg z-10">
+        <div className="absolute top-2 right-2 lg:top-4 lg:right-4 bg-red-500 text-white text-xs lg:text-base font-black rounded-full w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 flex items-center justify-center shadow-lg z-10">
           {rerollCount}
         </div>
 
         {/* Content */}
-        <div className="flex flex-col items-center gap-4 z-10">
+        <div className="flex flex-col items-center gap-1 sm:gap-2 lg:gap-4 z-10">
           {/* SVG Icon - Refresh/Dice */}
-          <div className={`p-4 rounded-full bg-white/40 backdrop-blur-sm shadow-inner ${rerollCount > 0 && !eventMessage && clickedAction === null && !isRerolling ? "group-hover:rotate-180 transition-transform duration-700 ease-in-out" : ""}`}>
+          <div className={`p-1.5 sm:p-2 lg:p-4 rounded-full bg-white/40 backdrop-blur-sm shadow-inner ${rerollCount > 0 && !eventMessage && clickedAction === null && !isRerolling ? "group-hover:rotate-180 transition-transform duration-700 ease-in-out" : ""}`}>
              <svg 
                xmlns="http://www.w3.org/2000/svg" 
-               className={`w-12 h-12 ${rerollStyles.text}`} 
+               className={`w-6 h-6 sm:w-8 sm:h-8 lg:w-12 lg:h-12 ${rerollStyles.text}`} 
                fill="none" 
                viewBox="0 0 24 24" 
                stroke="currentColor" 
@@ -265,11 +265,11 @@ const GameActionButtons: React.FC<Props> = ({
              </svg>
           </div>
           
-          <span className={`text-xl font-black uppercase tracking-wider ${rerollStyles.text}`}>
+          <span className={`text-xs sm:text-sm md:text-base lg:text-xl font-black uppercase tracking-wider ${rerollStyles.text} text-center leading-tight`}>
             Phương án khác
           </span>
           
-          <div className="text-xs font-medium text-amber-700/70 text-center px-2">
+          <div className="hidden lg:block text-xs font-medium text-amber-700/70 text-center px-2">
             Thay đổi danh sách hành động hiện tại
           </div>
         </div>

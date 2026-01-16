@@ -136,7 +136,7 @@ export default function GameControlButtons({ showOnMenu = false }: GameControlBu
             style={subtleButtonStyle}
             title="Hướng dẫn"
           >
-            ?
+            <img src="/background/faq.svg" alt="Hướng dẫn" className="w-5 h-5" />
           </button>
         </div>
 
@@ -157,7 +157,7 @@ export default function GameControlButtons({ showOnMenu = false }: GameControlBu
           style={subtleButtonStyle}
           title="Hướng dẫn"
         >
-          ?
+          <img src="/background/faq.svg" alt="Hướng dẫn" className="w-5 h-5" />
         </button>
 
         {/* Settings Button */}
@@ -167,7 +167,7 @@ export default function GameControlButtons({ showOnMenu = false }: GameControlBu
           style={subtleButtonStyle}
           title="Cài đặt"
         >
-          ⚙
+          <img src="/background/setting.svg" alt="Cài đặt" className="w-5 h-5" />
         </button>
       </div>
 

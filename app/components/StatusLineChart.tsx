@@ -348,8 +348,8 @@ const StatusLineChart: React.FC<Props> = ({
         }}
       >
         {/* Chart container - flexible height based on viewport */}
-        {/* Uses vh units: ~28vh on laptop, scales up on larger screens */}
-        <div ref={chartContainerRef} className="flex h-[28vh] min-h-[180px] max-h-[320px]">
+        {/* Responsive: smaller on mobile, scales up on larger screens */}
+        <div ref={chartContainerRef} className="flex h-[25vh] sm:h-[28vh] min-h-[140px] sm:min-h-[180px] max-h-[280px] sm:max-h-[320px]">
           {/* Sticky Y-Axis - Uses explicit HTML positioning for perfect reliability */}
           <div
             className="flex-shrink-0 z-10 relative"

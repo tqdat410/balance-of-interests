@@ -10,7 +10,7 @@ const MAX_PAGE_SIZE = 100;
 
 export async function POST(request: NextRequest) {
   try {
-    const { page_number, page_size } = await request.json();
+    const { page_number, page_size, date_from, date_to } = await request.json();
 
     // Validate pagination params
     if (
@@ -26,12 +26,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate date params if provided (ISO 8601 format)
+    const dateFromParam = date_from ? String(date_from) : null;
+    const dateToParam = date_to ? String(date_to) : null;
+
     // Call Supabase RPC function using SDK
     const supabase = getSupabaseApiClient();
 
     const { data, error } = await supabase.rpc("get_grouped_leaderboard", {
       page_number,
       page_size,
+      date_from: dateFromParam,
+      date_to: dateToParam,
     });
 
     if (error) {
