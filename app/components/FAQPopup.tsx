@@ -90,7 +90,7 @@ export default function FAQPopup({ onClose }: FAQPopupProps) {
           {/* Version Info */}
           <div className="mb-3 pt-3 border-t border-slate-200/50 flex flex-col items-start gap-1">
             <span className="text-xs text-slate-500 font-medium">
-              Version : 2.3.0 - By : <a href="mailto:tqdat410@gmail.com" className="hover:text-slate-600 hover:underline transition-colors">tqdat410@gmail.com</a>
+              Version : 2.3.1 - By : <a href="mailto:tqdat410@gmail.com" className="hover:text-slate-600 hover:underline transition-colors">tqdat410@gmail.com</a>
             </span>
           </div>
 

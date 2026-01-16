@@ -107,16 +107,26 @@ export default function LoadingScreen({ onLoadComplete }: LoadingScreenProps) {
     const preloadImage = (src: string) => {
       return new Promise<void>((resolve) => {
         const img = new Image();
-        img.src = src;
-        img.onload = () => {
+        let resolved = false;
+
+        const handleLoad = () => {
+          if (resolved) return;
+          resolved = true;
           updateProgress();
           resolve();
         };
+
+        img.onload = handleLoad;
         img.onerror = () => {
           console.warn(`Failed to load image: ${src}`);
-          updateProgress(); // Count errors as loaded to avoid blocking
-          resolve();
+          handleLoad(); // Treat error as loaded to continue
         };
+
+        img.src = src;
+
+        if (img.complete && img.naturalHeight !== 0) {
+          handleLoad();
+        }
       });
     };
 
@@ -124,28 +134,26 @@ export default function LoadingScreen({ onLoadComplete }: LoadingScreenProps) {
       return new Promise<void>((resolve) => {
         let resolved = false;
         const audio = new Audio();
-        audio.src = src;
-        audio.oncanplaythrough = () => {
-          if (!resolved) {
-            resolved = true;
-            updateProgress();
-            resolve();
-          }
+        
+        const handleLoad = () => {
+          if (resolved) return;
+          resolved = true;
+          updateProgress();
+          resolve();
         };
+
+        audio.oncanplaythrough = handleLoad;
         audio.onerror = () => {
-          if (!resolved) {
-            resolved = true;
-            console.warn(`Failed to load audio: ${src}`);
-            updateProgress();
-            resolve();
-          }
+          console.warn(`Failed to load audio: ${src}`);
+          handleLoad();
         };
+
+        audio.src = src;
+        
         // Fallback timeout for audio that might not preload without interaction
         setTimeout(() => {
           if (!resolved) {
-            resolved = true;
-            updateProgress();
-            resolve();
+            handleLoad();
           }
         }, 2000);
       });
