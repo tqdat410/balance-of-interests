@@ -6,6 +6,8 @@ interface LoadingScreenProps {
   onLoadComplete: () => void;
 }
 
+const LOADING_SPINNER_SRC = "/background/db_loading.svg";
+
 const ASSETS = {
   backgrounds: [
     // Local Backgrounds
@@ -14,7 +16,6 @@ const ASSETS = {
     "/background/bg_survived.jpg",
     "/background/bg_harmony.jpg",
     "/background/bg_leaderboard.jpg",
-    "/background/db_loading.svg",
 
     // Event Images (Cloudinary)
     "https://res.cloudinary.com/do6szo7zy/image/upload/f_auto,q_auto,ar_16:9,c_fill/v1768308253/db_khoi-nghiep_g4cswk.png",
@@ -77,14 +78,6 @@ export default function LoadingScreen({ onLoadComplete }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [shouldRender, setShouldRender] = useState(true);
-  const [dots, setDots] = useState("");
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDots((prev) => (prev.length >= 3 ? "" : prev + "."));
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -159,7 +152,7 @@ export default function LoadingScreen({ onLoadComplete }: LoadingScreenProps) {
       });
     };
 
-    const preloadFont = (src: string) => {
+    const preloadFont = () => {
         // Font loading is tricky, we'll assume it's loaded if the document fonts are ready or timeout
         return new Promise<void>((resolve) => {
             // Just a simple timeout or check if document.fonts is available
@@ -238,8 +231,10 @@ export default function LoadingScreen({ onLoadComplete }: LoadingScreenProps) {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center gap-4">
         <img
-          src="/background/db_loading.svg"
+          src={LOADING_SPINNER_SRC}
           alt="Loading"
+          loading="eager"
+          fetchPriority="high"
           className="w-32 h-32 md:w-48 md:h-48 animate-spin"
           style={{ animationDuration: "3s" }}
         />

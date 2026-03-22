@@ -75,7 +75,7 @@ export default function FAQPopup({ onClose }: FAQPopupProps) {
             </p>
 
             <p className="text-slate-500">
-              Dùng các lượt 'Phương án khác' để thay đổi các hành động có thể lựa chọn.
+              Dùng các lượt &apos;Phương án khác&apos; để thay đổi các hành động có thể lựa chọn.
             </p>
             <div className="pt-2 border-t border-slate-200/50">
               <h3 className="text-xs font-bold text-slate-500 mb-1">Cơ chế tính điểm:</h3>
@@ -88,9 +88,20 @@ export default function FAQPopup({ onClose }: FAQPopupProps) {
           </div>
 
           {/* Version Info */}
-          <div className="mb-3 pt-3 border-t border-slate-200/50 flex flex-col items-start gap-1">
+          <div className="mb-3 pt-3 border-t border-slate-200/50 flex flex-col items-center gap-1 text-center">
             <span className="text-xs text-slate-500 font-medium">
-              Version : 2.3.1 - From : tranquocdat.com
+              By :{" "}
+              <a
+                href="https://tranquocdat.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-600 transition-colors hover:text-sky-700"
+              >
+                tranquocdat.com
+              </a>
+            </span>
+            <span className="text-xs text-slate-500 font-medium">
+              Version : 2.3.2 - Last Updated : 22/03/2026
             </span>
           </div>
 
